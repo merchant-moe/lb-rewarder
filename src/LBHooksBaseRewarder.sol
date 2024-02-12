@@ -54,7 +54,7 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, I
     }
 
     function isStopped() external view virtual returns (bool) {
-        return _isLinked();
+        return !_isLinked();
     }
 
     // not safe if ids has duplicates
@@ -119,6 +119,7 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, I
 
         _updateAccruedRewardsPerShare();
         _updateUser(msg.sender, ids);
+
         _claim(msg.sender, _unclaimedRewards[msg.sender]);
     }
 
@@ -157,8 +158,8 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, I
     function sweep(IERC20 token, address to) external virtual onlyOwner {
         uint256 balance = _balanceOfThis(token);
 
-        if (_isLinked() && token == _getRewardToken()) revert LBHooksBaseRewarder__LockedRewardToken();
         if (balance == 0) revert LBHooksBaseRewarder__ZeroBalance();
+        if (_isLinked() && token == _getRewardToken()) revert LBHooksBaseRewarder__LockedRewardToken();
 
         _safeTransfer(token, to, balance);
     }
@@ -248,7 +249,7 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, I
     function _nativeReceived() internal view virtual {
         if (address(_getRewardToken()) != address(0)) revert LBHooksBaseRewarder__NotNativeRewarder();
         if (msg.value == 0) revert LBHooksBaseRewarder__NoValueReceived();
-        if (msg.data.length != _getImmutableArgsOffset()) revert LBHooksBaseRewarder__NotImplemented();
+        if (_getImmutableArgsOffset() != 0) revert LBHooksBaseRewarder__NotImplemented();
     }
 
     function _safeTransfer(IERC20 token, address to, uint256 amount) internal virtual {
