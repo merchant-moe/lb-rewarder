@@ -2,13 +2,16 @@
 pragma solidity ^0.8.20;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {LBHooksBaseRewarder} from "./LBHooksBaseRewarder.sol";
+import {LBHooksBaseRewarder, Hooks} from "./LBHooksBaseRewarder.sol";
 import {ILBHooksExtraRewarder} from "./interfaces/ILBHooksExtraRewarder.sol";
+import {ILBHooksRewarder} from "./interfaces/ILBHooksRewarder.sol";
 
 contract LBHooksExtraRewarder is LBHooksBaseRewarder, ILBHooksExtraRewarder {
     uint256 internal _rewardsPerSecond;
     uint256 internal _endTimestamp;
     uint256 internal _lastUpdateTimestamp;
+
+    constructor(address lbHooksManager) LBHooksBaseRewarder(lbHooksManager) {}
 
     function getRewarderParameter()
         external
@@ -23,7 +26,7 @@ contract LBHooksExtraRewarder is LBHooksBaseRewarder, ILBHooksExtraRewarder {
         return _balanceOfThis(_getRewardToken()) - _totalUnclaimedRewards - _getPendingTotalRewards();
     }
 
-    function getParentRewarder() external view virtual returns (address) {
+    function getParentRewarder() external view virtual returns (ILBHooksRewarder) {
         return _getParentRewarder();
     }
 
@@ -48,26 +51,8 @@ contract LBHooksExtraRewarder is LBHooksBaseRewarder, ILBHooksExtraRewarder {
         return _setRewardParameters(maxRewardPerSecond, startTimestamp, expectedDuration);
     }
 
-    function _checkCaller() internal view virtual override {
-        if (_getParentRewarder() != msg.sender) revert LBHooksExtraRewarder__UnauthorizedCaller();
-    }
-
-    function _getParentRewarder() internal view virtual returns (address) {
-        return _getArgAddress(20);
-    }
-
-    function _getPendingTotalRewards() internal view virtual override returns (uint256 pendingTotalRewards) {
-        uint256 lastUpdateTimestamp = _lastUpdateTimestamp;
-
-        if (block.timestamp > lastUpdateTimestamp && block.timestamp < _endTimestamp) {
-            pendingTotalRewards = _rewardsPerSecond * (block.timestamp - lastUpdateTimestamp);
-        }
-    }
-
-    function _updateUser(address to, uint256[] memory ids) internal virtual override returns (uint256 pendingRewards) {
-        pendingRewards = super._updateUser(to, ids);
-
-        if (pendingRewards > 0) _totalUnclaimedRewards -= pendingRewards;
+    function _getParentRewarder() internal view virtual returns (ILBHooksRewarder) {
+        return ILBHooksRewarder(_getArgAddress(40));
     }
 
     function _setRewardParameters(uint256 maxRewardPerSecond, uint256 startTimestamp, uint256 expectedDuration)
@@ -75,7 +60,7 @@ contract LBHooksExtraRewarder is LBHooksBaseRewarder, ILBHooksExtraRewarder {
         virtual
         returns (uint256 rewardPerSecond)
     {
-        if (startTimestamp < block.timestamp) revert LBHooksExtraRewarder__InvalidStartTimestamp(startTimestamp);
+        if (startTimestamp < block.timestamp) startTimestamp = block.timestamp;
         if (!_isLinked()) revert LBHooksExtraRewarder__Stopped();
         if (expectedDuration == 0 && maxRewardPerSecond != 0) revert LBHooksExtraRewarder__InvalidDuration();
 
@@ -100,10 +85,42 @@ contract LBHooksExtraRewarder is LBHooksBaseRewarder, ILBHooksExtraRewarder {
         emit RewardParameterUpdated(rewardPerSecond, startTimestamp, endTimestamp);
     }
 
+    function _checkCaller() internal view virtual override {
+        if (address(_getParentRewarder()) != msg.sender) revert LBHooksExtraRewarder__UnauthorizedCaller();
+    }
+
+    function _isLinked() internal view virtual override returns (bool linked) {
+        ILBHooksRewarder parentRewarder = _getParentRewarder();
+
+        return Hooks.getHooks(parentRewarder.getExtraHooksParameters()) == address(this);
+    }
+
+    function _isAuthorizedCaller(address) internal view virtual override returns (bool) {
+        return msg.sender == address(_getParentRewarder());
+    }
+
+    function _getPendingTotalRewards() internal view virtual override returns (uint256 pendingTotalRewards) {
+        uint256 lastUpdateTimestamp = _lastUpdateTimestamp;
+
+        if (block.timestamp > lastUpdateTimestamp) {
+            uint256 endTimestamp = _endTimestamp;
+
+            uint256 deltaTimestamp = block.timestamp < endTimestamp
+                ? block.timestamp - lastUpdateTimestamp
+                : endTimestamp - lastUpdateTimestamp;
+
+            pendingTotalRewards = _rewardsPerSecond * deltaTimestamp;
+        }
+    }
+
+    function _onHooksSet(bytes calldata) internal virtual override {
+        if (Hooks.getHooks(_getLBPair().getLBHooksParameters()) != address(_getParentRewarder())) {
+            revert LBHooksExtraRewarder__ParentRewarderNotLinked();
+        }
+    }
+
     function _update() internal virtual override returns (uint256 pendingTotalRewards) {
         pendingTotalRewards = _getPendingTotalRewards();
-
-        _totalUnclaimedRewards += pendingTotalRewards;
 
         if (block.timestamp > _lastUpdateTimestamp) _lastUpdateTimestamp = block.timestamp;
     }
