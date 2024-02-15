@@ -13,13 +13,10 @@ interface ILBHooksBaseRewarder is ILBHooks {
     error LBHooksBaseRewarder__ZeroBalance();
     error LBHooksBaseRewarder__LockedRewardToken();
     error LBHooksBaseRewarder__NotNativeRewarder();
-    error LBHooksBaseRewarder__InvalidExtraHooksRewarder();
-    error LBHooksBaseRewarder__NoValueReceived();
     error LBHooksBaseRewarder__NotImplemented();
+    error LBHooksBaseRewarder__UnauthorizedCaller();
 
     event DeltaBinsSet(int24 deltaBinA, int24 deltaBinB);
-
-    event ExtraHooksRewarderSet(address extraHooksRewarder);
 
     struct Bin {
         uint256 accRewardsPerShareX64;
@@ -32,11 +29,9 @@ interface ILBHooksBaseRewarder is ILBHooks {
 
     function getPendingRewards(address user, uint256[] calldata ids) external view returns (uint256 pendingRewards);
 
-    function claim(uint256[] calldata ids) external;
+    function claim(address user, uint256[] calldata ids) external;
 
     function setDeltaBins(int24 deltaBinA, int24 deltaBinB) external;
-
-    function setExtraHooksRewarder(address extraHooksRewarder, bytes calldata extraRewarderData) external;
 
     function sweep(IERC20 token, address to) external;
 }

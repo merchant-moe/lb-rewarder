@@ -8,6 +8,7 @@ import {
 } from "@openzeppelin-upgradeable/contracts/access/Ownable2StepUpgradeable.sol";
 import {LBBaseHooks, ILBHooks} from "@lb-protocol/src/LBBaseHooks.sol";
 import {Uint256x256Math} from "@lb-protocol/src/libraries/math/Uint256x256Math.sol";
+import {Clone} from "@lb-protocol/src/libraries/Clone.sol";
 import {ILBPair} from "@lb-protocol/src/interfaces/ILBPair.sol";
 import {PriceHelper} from "@lb-protocol/src/libraries/PriceHelper.sol";
 import {BinHelper} from "@lb-protocol/src/libraries/BinHelper.sol";
@@ -15,7 +16,7 @@ import {Hooks} from "@lb-protocol/src/libraries/Hooks.sol";
 import {ILBHooksBaseRewarder} from "./interfaces/ILBHooksBaseRewarder.sol";
 import {ILBHooksExtraRewarder} from "./interfaces/ILBHooksExtraRewarder.sol";
 
-abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, ILBHooksBaseRewarder {
+abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, Clone, ILBHooksBaseRewarder {
     using Uint256x256Math for uint256;
     using SafeERC20 for IERC20;
 
@@ -25,7 +26,7 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, I
     bytes32 internal constant FLAGS = Hooks.BEFORE_SWAP_FLAG | Hooks.BEFORE_MINT_FLAG | Hooks.AFTER_MINT_FLAG
         | Hooks.BEFORE_BURN_FLAG | Hooks.AFTER_BURN_FLAG | Hooks.BEFORE_TRANSFER_FLAG | Hooks.AFTER_TRANSFER_FLAG;
 
-    address internal _extraHooksRewarder;
+    address internal immutable _lbHooksManager;
 
     int24 internal _deltaBinA;
     int24 internal _deltaBinB;
@@ -35,8 +36,10 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, I
     mapping(uint256 => Bin) internal _bins;
     mapping(address => uint256) internal _unclaimedRewards;
 
-    constructor() {
+    constructor(address LBHooksManager) {
         implementation = address(this);
+
+        _lbHooksManager = LBHooksManager;
 
         _disableInitializers();
     }
@@ -53,28 +56,28 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, I
         return _getRewardToken();
     }
 
+    function getLBHooksManager() external view virtual returns (address) {
+        return _lbHooksManager;
+    }
+
     function isStopped() external view virtual returns (bool) {
         return !_isLinked();
     }
 
     // not safe if ids has duplicates
-    function getPendingRewards(address user, uint256[] calldata ids)
-        external
-        view
-        virtual
-        returns (uint256 pendingRewards)
-    {
+    function getPendingRewards(address user, uint256[] calldata ids) external view virtual returns (uint256) {
         if (!_isLinked()) return 0;
 
         ILBPair lbPair = _getLBPair();
 
-        (uint256[] memory rewardedIds, uint256 binStart, uint256 binEnd) = _getRewardedRange();
+        (uint256[] memory rewardedIds, uint24 activeId, uint256 binStart, uint256 binEnd) = _getRewardedRange();
         (uint256[] memory liquiditiesX128, uint256[] memory totalSuppliesX64, uint256 totalLiquiditiesX128) =
-            _getLiquidityData(lbPair, rewardedIds);
+            _getLiquidityData(lbPair, activeId, rewardedIds);
 
         address user_ = user; // Avoid stack too deep error
 
         uint256 pendingTotalRewards = _getPendingTotalRewards();
+        uint256 pendingRewards;
 
         for (uint256 i; i < ids.length; ++i) {
             uint24 id = uint24(ids[i]);
@@ -111,16 +114,19 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, I
             }
         }
 
-        return pendingRewards + _unclaimedRewards[user];
+        return pendingRewards + _unclaimedRewards[user_];
     }
 
-    function claim(uint256[] calldata ids) external virtual {
+    function claim(address user, uint256[] calldata ids) external virtual {
         if (!_isLinked()) revert LBHooksBaseRewarder__UnlinkedHooks();
+        if (!_isAuthorizedCaller(user)) revert LBHooksBaseRewarder__UnauthorizedCaller();
 
         _updateAccruedRewardsPerShare();
-        _updateUser(msg.sender, ids);
+        _updateUser(user, ids);
 
-        _claim(msg.sender, _unclaimedRewards[msg.sender]);
+        _onClaim(user, ids);
+
+        _claim(user, _unclaimedRewards[user]);
     }
 
     function setDeltaBins(int24 deltaBinA, int24 deltaBinB) external virtual onlyOwner {
@@ -132,27 +138,6 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, I
         _deltaBinB = deltaBinB;
 
         emit DeltaBinsSet(deltaBinA, deltaBinB);
-    }
-
-    function setExtraHooksRewarder(address extraHooksRewarder, bytes calldata extraRewarderData)
-        external
-        virtual
-        onlyOwner
-    {
-        _extraHooksRewarder = extraHooksRewarder;
-
-        if (extraHooksRewarder != address(0)) {
-            if (
-                ILBHooksExtraRewarder(extraHooksRewarder).getLBPair() != _getLBPair()
-                    || ILBHooksExtraRewarder(extraHooksRewarder).getParentRewarder() != address(this)
-            ) {
-                revert LBHooksBaseRewarder__InvalidExtraHooksRewarder();
-            }
-
-            Hooks.onHooksSet(_getExtraHooksParameters(), extraRewarderData);
-        }
-
-        emit ExtraHooksRewarderSet(extraHooksRewarder);
     }
 
     function sweep(IERC20 token, address to) external virtual onlyOwner {
@@ -172,13 +157,17 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, I
         return IERC20(_getArgAddress(20));
     }
 
+    function _isAuthorizedCaller(address user) internal view virtual returns (bool) {
+        return user == msg.sender;
+    }
+
     function _getRewardedRange()
         internal
         view
         virtual
-        returns (uint256[] memory rewardedIds, uint256 binStart, uint256 binEnd)
+        returns (uint256[] memory rewardedIds, uint24 activeId, uint256 binStart, uint256 binEnd)
     {
-        uint24 activeId = _getLBPair().getActiveId();
+        activeId = _getLBPair().getActiveId();
         (int24 deltaBinA, int24 deltaBinB) = (_deltaBinA, _deltaBinB);
 
         binStart = uint256(int256(uint256(activeId)) + deltaBinA);
@@ -196,14 +185,13 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, I
         }
     }
 
-    function _getLiquidityData(ILBPair lbPair, uint256[] memory ids)
+    function _getLiquidityData(ILBPair lbPair, uint24 activeId, uint256[] memory ids)
         internal
         view
         virtual
         returns (uint256[] memory liquiditiesX128, uint256[] memory totalSuppliesX64, uint256 totalLiquiditiesX128)
     {
-        uint16 binStep = lbPair.getBinStep();
-
+        uint256 activePriceX128 = PriceHelper.getPriceFromId(activeId, lbPair.getBinStep());
         uint256 length = ids.length;
 
         liquiditiesX128 = new uint256[](length);
@@ -213,10 +201,9 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, I
             uint24 id = uint24(ids[i]);
 
             (uint128 binReserveX, uint128 binReserveY) = lbPair.getBin(id);
-            uint256 priceX128 = PriceHelper.getPriceFromId(id, binStep);
 
             uint256 totalSupplyX64 = lbPair.totalSupply(id);
-            uint256 liquidityX128 = BinHelper.getLiquidity(binReserveX, binReserveY, priceX128);
+            uint256 liquidityX128 = BinHelper.getLiquidity(binReserveX, binReserveY, activePriceX128);
 
             liquiditiesX128[i] = liquidityX128;
             totalSuppliesX64[i] = totalSupplyX64;
@@ -236,20 +223,9 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, I
         }
     }
 
-    function _getExtraHooksParameters() internal view virtual returns (bytes32 hooksParameters) {
-        address extraHooksRewarder = _extraHooksRewarder;
-
-        if (extraHooksRewarder == address(0)) return 0;
-
-        bytes32 flags = FLAGS;
-
-        return Hooks.setHooks(flags, extraHooksRewarder);
-    }
-
     function _nativeReceived() internal view virtual {
-        if (address(_getRewardToken()) != address(0)) revert LBHooksBaseRewarder__NotNativeRewarder();
-        if (msg.value == 0) revert LBHooksBaseRewarder__NoValueReceived();
         if (_getImmutableArgsOffset() != 0) revert LBHooksBaseRewarder__NotImplemented();
+        if (address(_getRewardToken()) != address(0)) revert LBHooksBaseRewarder__NotNativeRewarder();
     }
 
     function _safeTransfer(IERC20 token, address to, uint256 amount) internal virtual {
@@ -270,9 +246,9 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, I
 
         ILBPair lbPair = _getLBPair();
 
-        (uint256[] memory ids,,) = _getRewardedRange();
+        (uint256[] memory ids, uint24 activeId,,) = _getRewardedRange();
         (uint256[] memory liquiditiesX128, uint256[] memory totalSuppliesX64, uint256 totalLiquiditiesX128) =
-            _getLiquidityData(lbPair, ids);
+            _getLiquidityData(lbPair, activeId, ids);
 
         if (totalLiquiditiesX128 == 0) return;
 
@@ -288,10 +264,11 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, I
         }
     }
 
-    function _updateUser(address to, uint256[] memory ids) internal virtual returns (uint256 pendingRewards) {
+    function _updateUser(address to, uint256[] memory ids) internal virtual {
         ILBPair lbPair = _getLBPair();
 
         uint256 length = ids.length;
+        uint256 pendingRewards;
         for (uint256 i; i < length; ++i) {
             uint24 id = uint24(ids[i]);
             uint256 balanceX64 = lbPair.balanceOf(to, id);
@@ -326,7 +303,11 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, I
         _safeTransfer(_getRewardToken(), user, rewards);
     }
 
-    function _onHooksSet(bytes32 hooksParameters, bytes calldata data) internal virtual override initializer {
+    function _getLBPair() internal view virtual override returns (ILBPair) {
+        return ILBPair(_getArgAddress(0));
+    }
+
+    function _onHooksSet(bytes32 hooksParameters, bytes calldata data) internal override initializer {
         if (hooksParameters != Hooks.setHooks(FLAGS, address(this))) {
             revert LBHooksBaseRewarder__InvalidHooksParameters();
         }
@@ -334,90 +315,61 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, I
         address owner = abi.decode(data, (address));
         __Ownable_init(owner);
 
-        bytes32 extraHooksParameters = _getExtraHooksParameters();
-        if (extraHooksParameters != 0) {
-            Hooks.onHooksSet(extraHooksParameters, data);
-        }
+        _onHooksSet(data);
     }
 
-    function _beforeSwap(address sender, address to, bool swapForY, bytes32 amountsIn) internal virtual override {
+    function _beforeSwap(address, address, bool, bytes32) internal virtual override {
         _updateAccruedRewardsPerShare();
-
-        Hooks.beforeSwap(_getExtraHooksParameters(), sender, to, swapForY, amountsIn);
     }
 
-    function _beforeMint(address from, address to, bytes32[] calldata liquidityConfigs, bytes32 amountsReceived)
-        internal
-        virtual
-        override
-    {
+    function _beforeMint(address, address to, bytes32[] calldata liquidityConfigs, bytes32) internal virtual override {
         _updateAccruedRewardsPerShare();
         _updateUser(to, _convertLiquidityConfigs(liquidityConfigs));
-
-        Hooks.beforeMint(_getExtraHooksParameters(), from, to, liquidityConfigs, amountsReceived);
     }
 
-    function _afterMint(address from, address to, bytes32[] calldata liquidityConfigs, bytes32 amountsIn)
+    function _afterMint(address, address to, bytes32[] calldata, bytes32) internal virtual override {
+        _claim(to, _unclaimedRewards[to]);
+    }
+
+    function _beforeBurn(address, address from, address, uint256[] calldata ids, uint256[] calldata)
         internal
         virtual
         override
     {
-        _claim(to, _unclaimedRewards[to]);
-
-        Hooks.afterMint(_getExtraHooksParameters(), from, to, liquidityConfigs, amountsIn);
-    }
-
-    function _beforeBurn(
-        address sender,
-        address from,
-        address to,
-        uint256[] calldata ids,
-        uint256[] calldata amountsToBurn
-    ) internal virtual override {
         _updateAccruedRewardsPerShare();
         _updateUser(from, ids);
-
-        Hooks.beforeBurn(_getExtraHooksParameters(), sender, from, to, ids, amountsToBurn);
     }
 
-    function _afterBurn(
-        address sender,
-        address from,
-        address to,
-        uint256[] calldata ids,
-        uint256[] calldata amountsToBurn
-    ) internal virtual override {
+    function _afterBurn(address, address from, address, uint256[] calldata, uint256[] calldata)
+        internal
+        virtual
+        override
+    {
         _claim(from, _unclaimedRewards[from]);
-
-        Hooks.afterBurn(_getExtraHooksParameters(), sender, from, to, ids, amountsToBurn);
     }
 
-    function _beforeBatchTransferFrom(
-        address sender,
-        address from,
-        address to,
-        uint256[] calldata ids,
-        uint256[] calldata amounts
-    ) internal virtual override {
+    function _beforeBatchTransferFrom(address, address from, address to, uint256[] calldata ids, uint256[] calldata)
+        internal
+        virtual
+        override
+    {
         _updateAccruedRewardsPerShare();
 
         _updateUser(from, ids);
         _updateUser(to, ids);
-
-        Hooks.beforeBatchTransferFrom(_getExtraHooksParameters(), sender, from, to, ids, amounts);
     }
 
-    function _afterBatchTransferFrom(
-        address sender,
-        address from,
-        address to,
-        uint256[] calldata ids,
-        uint256[] calldata amounts
-    ) internal virtual override {
+    function _afterBatchTransferFrom(address, address from, address, uint256[] calldata, uint256[] calldata)
+        internal
+        virtual
+        override
+    {
         _claim(from, _unclaimedRewards[from]);
-
-        Hooks.afterBatchTransferFrom(_getExtraHooksParameters(), sender, from, to, ids, amounts);
     }
+
+    function _onHooksSet(bytes calldata data) internal virtual {}
+
+    function _onClaim(address user, uint256[] calldata ids) internal virtual {}
 
     function _getPendingTotalRewards() internal view virtual returns (uint256 pendingTotalRewards);
 

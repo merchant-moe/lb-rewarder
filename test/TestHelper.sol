@@ -5,40 +5,67 @@ pragma solidity ^0.8.20;
 import "forge-std/Test.sol";
 
 import {LBFactory} from "@lb-protocol/src/LBFactory.sol";
-import {LBPair, ILBPair, IERC20, LiquidityConfigurations} from "@lb-protocol/src/LBPair.sol";
+import {
+    LBPair, ILBPair, IERC20 as LB_IERC20, LiquidityConfigurations, Hooks, ILBHooks
+} from "@lb-protocol/src/LBPair.sol";
+import {ImmutableClone} from "@lb-protocol/src/libraries/ImmutableClone.sol";
+
+import "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 
 import "./mocks/MockERC20.sol";
+import "./mocks/MockMasterChef.sol";
+import "../src/LBHooksManager.sol";
 
 abstract contract TestHelper is Test {
     uint16 public constant DEFAULT_BIN_STEP = 25;
     uint24 public constant DEFAULT_ID = 2 ** 23;
 
+    LBHooksManager public lbHooksManager;
+
+    IMasterChef public masterchef;
+    IERC20 public moe;
+
     LBFactory public factory;
+
+    uint256[] public ids;
 
     ILBPair public pair01;
     ILBPair public pair02;
     ILBPair public pair12;
 
-    IERC20 public token0;
-    IERC20 public token1;
-    IERC20 public token2;
+    LB_IERC20 public token0;
+    LB_IERC20 public token1;
+    LB_IERC20 public token2;
 
-    IERC20 public rewardToken01;
-    IERC20 public rewardToken02;
-    IERC20 public rewardToken12;
+    LB_IERC20 public rewardToken01;
+    LB_IERC20 public rewardToken02;
+    LB_IERC20 public rewardToken12;
+
+    address public immutable alice = makeAddr("alice");
+    address public immutable bob = makeAddr("bob");
 
     address public feeRecipient = makeAddr("feeRecipient");
 
+    bytes32 public hooksParameters;
+
+    uint256 private _nonce;
+
     function setUp() public virtual {
+        ids.push(DEFAULT_ID - 2);
+        ids.push(DEFAULT_ID - 1);
+        ids.push(DEFAULT_ID);
+        ids.push(DEFAULT_ID + 1);
+        ids.push(DEFAULT_ID + 2);
+
         factory = new LBFactory(feeRecipient, 1e16);
 
-        token0 = IERC20(address(new MockERC20()));
-        token1 = IERC20(address(new MockERC20()));
-        token2 = IERC20(address(new MockERC20()));
+        token0 = LB_IERC20(address(new MockERC20()));
+        token1 = LB_IERC20(address(new MockERC20()));
+        token2 = LB_IERC20(address(new MockERC20()));
 
-        rewardToken01 = IERC20(address(new MockERC20()));
-        rewardToken02 = IERC20(address(new MockERC20()));
-        rewardToken12 = IERC20(address(new MockERC20()));
+        rewardToken01 = LB_IERC20(address(new MockERC20()));
+        rewardToken02 = LB_IERC20(address(new MockERC20()));
+        rewardToken12 = LB_IERC20(address(new MockERC20()));
 
         address lbPairImplementation = address(new LBPair(factory));
 
@@ -53,6 +80,40 @@ abstract contract TestHelper is Test {
         pair02 = factory.createLBPair(token0, token2, DEFAULT_ID, DEFAULT_BIN_STEP);
         pair12 = factory.createLBPair(token1, token2, DEFAULT_ID, DEFAULT_BIN_STEP);
 
+        hooksParameters = Hooks.encode(
+            Hooks.Parameters({
+                hooks: address(0),
+                beforeSwap: true,
+                afterSwap: false,
+                beforeFlashLoan: false,
+                afterFlashLoan: false,
+                beforeMint: true,
+                afterMint: true,
+                beforeBurn: true,
+                afterBurn: true,
+                beforeBatchTransferFrom: true,
+                afterBatchTransferFrom: true
+            })
+        );
+
+        moe = IERC20(address(new MockERC20()));
+        masterchef = IMasterChef(address(new MockMasterChef(moe)));
+
+        address lbHooksManagerImplementation =
+            address(new LBHooksManager(factory, IMasterChef(address(masterchef)), IERC20(address(moe))));
+
+        lbHooksManager = LBHooksManager(
+            address(
+                new TransparentUpgradeableProxy(
+                    lbHooksManagerImplementation,
+                    address(this),
+                    abi.encodeWithSelector(lbHooksManager.initialize.selector, address(this))
+                )
+            )
+        );
+
+        factory.grantRole(factory.LB_HOOKS_MANAGER_ROLE(), address(lbHooksManager));
+
         vm.label(address(factory), "factory");
 
         vm.label(address(pair01), "pair01");
@@ -66,6 +127,23 @@ abstract contract TestHelper is Test {
         vm.label(address(rewardToken01), "rewardToken01");
         vm.label(address(rewardToken02), "rewardToken02");
         vm.label(address(rewardToken12), "rewardToken12");
+
+        vm.label(address(moe), "moe");
+        vm.label(address(masterchef), "masterchef");
+        vm.label(address(lbHooksManager), "lbHooksManager");
+    }
+
+    function _createAndSetLBHooks(
+        ILBPair pair,
+        bytes32 parameters,
+        bytes memory immutableData,
+        bytes memory onHooksSetData
+    ) internal returns (address hooks) {
+        hooks = ImmutableClone.cloneDeterministic(Hooks.getHooks(parameters), immutableData, bytes32(_nonce++));
+
+        factory.setLBHooksParametersOnPair(
+            pair.getTokenX(), pair.getTokenY(), pair.getBinStep(), Hooks.setHooks(parameters, hooks), onHooksSetData
+        );
     }
 
     function _addLiquidity(
@@ -115,7 +193,7 @@ abstract contract TestHelper is Test {
         for (uint256 i; i < length; i++) {
             uint24 binId = uint24(id - nbBins + i);
 
-            uint64 weight = binId == activeId ? uint64(2e18) : uint64(1e18);
+            uint64 weight = binId == activeId ? uint64(1e18) : uint64(2e18);
 
             liqConfigs[i] = LiquidityConfigurations.encodeParams(
                 binId >= activeId ? weight / uint64(nbX) : 0, binId <= activeId ? weight / uint64(nbY) : 0, binId
@@ -130,18 +208,18 @@ abstract contract TestHelper is Test {
 
         uint256 length = 2 * nbBins + 1;
 
-        uint256[] memory ids = new uint256[](length);
+        uint256[] memory ids_ = new uint256[](length);
         uint256[] memory amounts = new uint256[](length);
 
         for (uint256 i; i < length; i++) {
             uint24 binId = uint24(id - nbBins + i);
 
-            ids[i] = binId;
+            ids_[i] = binId;
             amounts[i] = percent * pair.balanceOf(account, binId) / 1e18;
         }
 
         vm.prank(account);
-        pair.burn(account, account, ids, amounts);
+        pair.burn(account, account, ids_, amounts);
     }
 
     function _swap(ILBPair pair, address account, uint256 amountX, uint256 amountY) internal {

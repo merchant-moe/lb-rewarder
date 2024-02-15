@@ -8,52 +8,27 @@ import "./mocks/MockERC20.sol";
 import "../src/LBHooksBaseRewarder.sol";
 
 contract LBHooksBaseRewarderTest is TestHelper {
-    MockLBHooksBaseRewarder hooks;
-
-    address alice = makeAddr("alice");
-    address bob = makeAddr("bob");
-
-    uint24 activeId;
-    uint256[] ids;
+    MockLBHooksRewarder hooks;
 
     function setUp() public override {
         super.setUp();
 
-        address hookImplementation = address(new MockLBHooksBaseRewarder());
+        factory.grantRole(factory.LB_HOOKS_MANAGER_ROLE(), address(this));
 
-        factory.setDefaultLBHooksParameters(
-            Hooks.Parameters({
-                hooks: hookImplementation,
-                beforeSwap: true,
-                afterSwap: false,
-                beforeFlashLoan: false,
-                afterFlashLoan: false,
-                beforeMint: true,
-                afterMint: true,
-                beforeBurn: true,
-                afterBurn: true,
-                beforeBatchTransferFrom: true,
-                afterBatchTransferFrom: true
-            })
-        );
+        hooksParameters = Hooks.setHooks(hooksParameters, address(new MockLBHooksRewarder()));
 
-        hooks = MockLBHooksBaseRewarder(
+        hooks = MockLBHooksRewarder(
             payable(
-                address(
-                    factory.createDefaultLBHooksOnPair(
-                        token0, token1, DEFAULT_BIN_STEP, abi.encodePacked(rewardToken01), abi.encode(address(this))
-                    )
+                _createAndSetLBHooks(
+                    pair01,
+                    hooksParameters,
+                    abi.encodePacked(address(pair01), address(rewardToken01)),
+                    abi.encode(address(this))
                 )
             )
         );
 
         vm.label(address(hooks), "hooks");
-
-        ids.push(DEFAULT_ID - 2);
-        ids.push(DEFAULT_ID - 1);
-        ids.push(DEFAULT_ID);
-        ids.push(DEFAULT_ID + 1);
-        ids.push(DEFAULT_ID + 2);
     }
 
     function test_Getters() public {
@@ -67,9 +42,6 @@ contract LBHooksBaseRewarderTest is TestHelper {
     }
 
     function test_GetPendingRewardSwapAndTransfer() public {
-        _addLiquidity(pair01, alice, DEFAULT_ID, 2, 10e18, 10e18);
-        _addLiquidity(pair01, bob, DEFAULT_ID, 1, 30e18, 30e18);
-
         hooks.setDeltaBins(-1, 2);
 
         _addLiquidity(pair01, alice, DEFAULT_ID, 2, 10e18, 10e18);
@@ -120,7 +92,7 @@ contract LBHooksBaseRewarderTest is TestHelper {
         assertApproxEqRel(rewardToken01.balanceOf(bob), 7.5e18, 1e14, "test_GetPendingRewardSwapAndTransfer::20");
 
         vm.prank(alice);
-        hooks.claim(ids);
+        hooks.claim(alice, ids);
 
         assertEq(hooks.getPendingRewards(alice, ids), 0, "test_GetPendingRewardSwapAndTransfer::21");
         assertEq(hooks.getPendingRewards(bob, ids), 0, "test_GetPendingRewardSwapAndTransfer::22");
@@ -129,7 +101,7 @@ contract LBHooksBaseRewarderTest is TestHelper {
         factory.removeLBHooksOnPair(token0, token1, DEFAULT_BIN_STEP);
 
         vm.expectRevert(ILBHooksBaseRewarder.LBHooksBaseRewarder__UnlinkedHooks.selector);
-        hooks.claim(ids);
+        hooks.claim(address(this), ids);
     }
 
     function test_GetPendingRewardMintAndBurn() public {
@@ -178,44 +150,32 @@ contract LBHooksBaseRewarderTest is TestHelper {
             "test_SendNative::2"
         );
 
-        hooks = MockLBHooksBaseRewarder(
+        hooks = MockLBHooksRewarder(
             payable(
-                address(
-                    factory.createDefaultLBHooksOnPair(
-                        token0, token1, DEFAULT_BIN_STEP, abi.encodePacked(address(0)), abi.encode(address(this))
-                    )
+                _createAndSetLBHooks(
+                    pair01, hooksParameters, abi.encodePacked(pair01, address(0)), abi.encode(address(this))
                 )
             )
         );
 
-        (s, d) = address(hooks).call{value: 0}("");
+        (s, d) = address(hooks).call{value: 1e18}(data);
         assertFalse(s, "test_SendNative::3");
         assertEq(
             keccak256(d),
-            keccak256(abi.encodeWithSelector(ILBHooksBaseRewarder.LBHooksBaseRewarder__NoValueReceived.selector)),
+            keccak256(abi.encodeWithSelector(ILBHooksBaseRewarder.LBHooksBaseRewarder__NotImplemented.selector)),
             "test_SendNative::4"
         );
 
-        (s, d) = address(hooks).call{value: 1e18}(data);
-        assertFalse(s, "test_SendNative::5");
-        assertEq(
-            keccak256(d),
-            keccak256(abi.encodeWithSelector(ILBHooksBaseRewarder.LBHooksBaseRewarder__NotImplemented.selector)),
-            "test_SendNative::6"
-        );
-
         (s, d) = address(hooks).call{value: 1e18}("");
-        assertTrue(s, "test_SendNative::7");
-        assertEq(d.length, 0, "test_SendNative::8");
+        assertTrue(s, "test_SendNative::5");
+        assertEq(d.length, 0, "test_SendNative::6");
     }
 
     function test_NativeReward() public {
-        hooks = MockLBHooksBaseRewarder(
+        hooks = MockLBHooksRewarder(
             payable(
-                address(
-                    factory.createDefaultLBHooksOnPair(
-                        token0, token1, DEFAULT_BIN_STEP, abi.encodePacked(address(0)), abi.encode(address(this))
-                    )
+                _createAndSetLBHooks(
+                    pair01, hooksParameters, abi.encodePacked(pair01, address(0)), abi.encode(address(this))
                 )
             )
         );
@@ -228,7 +188,7 @@ contract LBHooksBaseRewarderTest is TestHelper {
         assertEq(alice.balance, 0, "test_NativeReward::2");
 
         vm.prank(alice);
-        hooks.claim(ids);
+        hooks.claim(alice, ids);
 
         assertEq(hooks.getPendingRewards(alice, ids), 0, "test_NativeReward::3");
         assertEq(alice.balance, 1e18, "test_NativeReward::4");
@@ -265,17 +225,17 @@ contract LBHooksBaseRewarderTest is TestHelper {
     }
 }
 
-contract MockLBHooksBaseRewarder is LBHooksBaseRewarder {
+contract MockLBHooksRewarder is LBHooksBaseRewarder {
     uint256 private _lastTimestamp;
+
+    constructor() LBHooksBaseRewarder(address(0)) {}
 
     function give(address account, uint256 amount) public {
         _totalUnclaimedRewards += amount;
         _unclaimedRewards[account] += amount;
     }
 
-    function _onHooksSet(bytes32 hooksParameters, bytes calldata data) internal override {
-        super._onHooksSet(hooksParameters, data);
-
+    function _onHooksSet(bytes calldata) internal override {
         _lastTimestamp = block.timestamp;
     }
 
@@ -304,114 +264,3 @@ contract MockLBHooksBaseRewarder is LBHooksBaseRewarder {
         }
     }
 }
-
-// contract MockLBPair {
-//     bytes32 public getLBHooksParameters;
-
-//     uint24 public getActiveId;
-//     uint16 public getBinStep;
-
-//     mapping(address => mapping(uint256 => uint256)) public balanceOf;
-//     mapping(uint256 => uint256) public totalSupply;
-
-//     function setHooksParameters(bytes32 parameters, bytes calldata data) public {
-//         getLBHooksParameters = parameters;
-
-//         Hooks.onHooksSet(parameters, data);
-//     }
-
-//     function setActiveId(uint24 activeId) public {
-//         getActiveId = activeId;
-//     }
-
-//     function setBinStep(uint16 binStep) internal {
-//         getBinStep = binStep;
-//     }
-
-//     function mint(address account, uint256[] memory ids, uint256[] memory amounts) public {
-//         for (uint256 i = 0; i < ids.length; i++) {
-//             uint256 id = ids[i];
-//             uint256 amount = amounts[i];
-
-//             balanceOf[account][id] += amount << 64;
-//             totalSupply[id] += amount << 64;
-//         }
-//     }
-
-//     function burn(address account, uint256 id, uint256 amount) public {
-//         balanceOf[account][id] -= amount << 64;
-//         totalSupply[id] -= amount << 64;
-//     }
-
-//     function getBin(uint24 id) public view returns (uint128 reserveX, uint128 reserveY) {
-//         uint256 supply = totalSupply[id] >> 64;
-//         uint24 activeId = getActiveId;
-
-//         if (id > activeId) reserveX = uint128(supply);
-//         if (id <= activeId) reserveY = uint128(supply);
-//     }
-
-//     function beforeSwap(address sender, address to, bool swapForY, bytes32 amountsIn) public {
-//         Hooks.beforeSwap(getLBHooksParameters, sender, to, swapForY, amountsIn);
-//     }
-
-//     function afterSwap(address sender, address to, bool swapForY, bytes32 amountsOut) public {
-//         Hooks.afterSwap(getLBHooksParameters, sender, to, swapForY, amountsOut);
-//     }
-
-//     function beforeMint(address sender, address to, bytes32[] calldata configs, bytes32 amounts) public {
-//         Hooks.beforeMint(getLBHooksParameters, sender, to, configs, amounts);
-//     }
-
-//     function afterMint(address sender, address to, bytes32[] calldata configs, bytes32 amounts) public {
-//         Hooks.afterMint(getLBHooksParameters, sender, to, configs, amounts);
-//     }
-
-//     function beforeBurn(
-//         address sender,
-//         address from,
-//         address to,
-//         uint256[] calldata ids,
-//         uint256[] calldata amountsToBurn
-//     ) public {
-//         Hooks.beforeBurn(getLBHooksParameters, sender, from, to, ids, amountsToBurn);
-//     }
-
-//     function afterBurn(
-//         address sender,
-//         address from,
-//         address to,
-//         uint256[] calldata ids,
-//         uint256[] calldata amountsToBurn
-//     ) public {
-//         Hooks.afterBurn(getLBHooksParameters, sender, from, to, ids, amountsToBurn);
-//     }
-
-//     function beforeFlashLoan(address sender, address to, bytes32 amounts) public {
-//         Hooks.beforeFlashLoan(getLBHooksParameters, sender, to, amounts);
-//     }
-
-//     function afterFlashLoan(address sender, address to, bytes32 fees, bytes32 feesReceived) public {
-//         Hooks.afterFlashLoan(getLBHooksParameters, sender, to, fees, feesReceived);
-//     }
-
-//     function beforeBatchTransferFrom(
-//         address sender,
-//         address from,
-//         address to,
-//         uint256[] calldata ids,
-//         uint256[] calldata amounts
-//     ) public {
-//         Hooks.beforeBatchTransferFrom(getLBHooksParameters, sender, from, to, ids, amounts);
-//     }
-
-//     function afterBatchTransferFrom(
-//         address sender,
-//         address from,
-//         address to,
-//         uint256[] calldata ids,
-//         uint256[] calldata amounts
-//     ) public {
-//         Hooks.afterBatchTransferFrom(getLBHooksParameters, sender, from, to, ids, amounts);
-//     }
-// }
