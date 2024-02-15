@@ -218,8 +218,12 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
         virtual
         returns (uint256[] memory ids)
     {
-        assembly {
-            ids := liquidityConfigs
+        uint256 length = liquidityConfigs.length;
+
+        ids = new uint256[](length);
+
+        for (uint256 i; i < length; ++i) {
+            ids[i] = uint24(uint256(liquidityConfigs[i]));
         }
     }
 
