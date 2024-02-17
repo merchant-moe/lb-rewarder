@@ -38,7 +38,7 @@ contract LBHooksRewarder is LBHooksBaseRewarder, ERC20Upgradeable, ILBHooksRewar
      * @dev Returns the pool id used to reward the LPs
      * @return pid The pool id
      */
-    function getPid() external view virtual returns (uint256 pid) {
+    function getPid() external view virtual override returns (uint256 pid) {
         return _getPid();
     }
 
@@ -46,7 +46,7 @@ contract LBHooksRewarder is LBHooksBaseRewarder, ERC20Upgradeable, ILBHooksRewar
      * @dev Returns the MasterChef contract
      * @return masterChef The MasterChef contract
      */
-    function getMasterChef() external view virtual returns (IMasterChef masterChef) {
+    function getMasterChef() external view virtual override returns (IMasterChef masterChef) {
         return _masterChef;
     }
 
@@ -66,6 +66,7 @@ contract LBHooksRewarder is LBHooksBaseRewarder, ERC20Upgradeable, ILBHooksRewar
     function setLBHooksExtraRewarder(ILBHooksExtraRewarder lbHooksExtraRewarder, bytes calldata extraRewarderData)
         external
         virtual
+        override
     {
         if (msg.sender != _lbHooksManager) _checkOwner();
 

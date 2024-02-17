@@ -59,7 +59,7 @@ contract LBHooksManager is Ownable2StepUpgradeable, ILBHooksManager {
      * @param lbHooksType The LB Hooks type
      * @return hooksParameters The LB Hooks parameters
      */
-    function getLBHooksParameters(LBHooksType lbHooksType) external view returns (bytes32 hooksParameters) {
+    function getLBHooksParameters(LBHooksType lbHooksType) external view override returns (bytes32 hooksParameters) {
         return _lbHooksParameters[lbHooksType];
     }
 
@@ -69,7 +69,7 @@ contract LBHooksManager is Ownable2StepUpgradeable, ILBHooksManager {
      * @param index The index of the LB Hooks
      * @return hooks The LB Hooks
      */
-    function getHooksAt(LBHooksType lbHooksType, uint256 index) external view returns (ILBHooks hooks) {
+    function getHooksAt(LBHooksType lbHooksType, uint256 index) external view override returns (ILBHooks hooks) {
         return _hooks[lbHooksType][index];
     }
 
@@ -78,7 +78,7 @@ contract LBHooksManager is Ownable2StepUpgradeable, ILBHooksManager {
      * @param lbHooksType The LB Hooks type
      * @return length The length of the LB Hooks
      */
-    function getHooksLength(LBHooksType lbHooksType) external view returns (uint256 length) {
+    function getHooksLength(LBHooksType lbHooksType) external view override returns (uint256 length) {
         return _hooks[lbHooksType].length;
     }
 
@@ -87,7 +87,7 @@ contract LBHooksManager is Ownable2StepUpgradeable, ILBHooksManager {
      * @param hooks The LB Hooks
      * @return lbHooksType The LB Hooks type
      */
-    function getLBHooksType(ILBHooks hooks) external view returns (LBHooksType lbHooksType) {
+    function getLBHooksType(ILBHooks hooks) external view override returns (LBHooksType lbHooksType) {
         return _lbHooksTypes[hooks];
     }
 
@@ -97,7 +97,7 @@ contract LBHooksManager is Ownable2StepUpgradeable, ILBHooksManager {
      * @param lbHooksType The LB Hooks type
      * @param hooksParameters The LB Hooks parameters
      */
-    function setLBHooksParameters(LBHooksType lbHooksType, bytes32 hooksParameters) external onlyOwner {
+    function setLBHooksParameters(LBHooksType lbHooksType, bytes32 hooksParameters) external override onlyOwner {
         if (lbHooksType == LBHooksType.Invalid) revert LBHooksManager__InvalidLBHooksType();
 
         _lbHooksParameters[lbHooksType] = hooksParameters;
@@ -117,6 +117,7 @@ contract LBHooksManager is Ownable2StepUpgradeable, ILBHooksManager {
      */
     function createLBHooksRewarder(IERC20 tokenX, IERC20 tokenY, uint16 binStep, address initialOwner)
         external
+        override
         onlyOwner
         returns (ILBHooksRewarder rewarder)
     {
@@ -156,7 +157,7 @@ contract LBHooksManager is Ownable2StepUpgradeable, ILBHooksManager {
         uint16 binStep,
         IERC20 rewardToken,
         address initialOwner
-    ) external onlyOwner returns (ILBHooksExtraRewarder extraRewarder) {
+    ) external override onlyOwner returns (ILBHooksExtraRewarder extraRewarder) {
         (ILBPair lbPair, bytes32 hooksParameters) =
             _getLBPairAndHooksParameters(LBHooksType.ExtraRewarder, tokenX, tokenY, binStep);
 

@@ -70,7 +70,7 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
      * @dev Returns the reward token
      * @return rewardToken The reward token
      */
-    function getRewardToken() external view virtual returns (IERC20) {
+    function getRewardToken() external view virtual override returns (IERC20) {
         return _getRewardToken();
     }
 
@@ -78,7 +78,7 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
      * @dev Returns the LB Hooks Manager
      * @return lbHooksManager The LB Hooks Manager
      */
-    function getLBHooksManager() external view virtual returns (address) {
+    function getLBHooksManager() external view virtual override returns (address) {
         return _lbHooksManager;
     }
 
@@ -86,7 +86,7 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
      * @dev Returns whether the rewarder is stopped
      * @return isStopped Whether the rewarder is stopped
      */
-    function isStopped() external view virtual returns (bool) {
+    function isStopped() external view virtual override returns (bool) {
         return !_isLinked();
     }
 
@@ -95,7 +95,7 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
      * @return binStart The bin start to be rewarded
      * @return binEnd The bin end to be rewarded, exclusive
      */
-    function getRewardedRange() external view virtual returns (uint256 binStart, uint256 binEnd) {
+    function getRewardedRange() external view virtual override returns (uint256 binStart, uint256 binEnd) {
         (,, binStart, binEnd) = _getRewardedRange();
     }
 
@@ -106,7 +106,7 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
      * @param ids The ids of the bins
      * @return pendingRewards The pending rewards
      */
-    function getPendingRewards(address user, uint256[] calldata ids) external view virtual returns (uint256) {
+    function getPendingRewards(address user, uint256[] calldata ids) external view virtual override returns (uint256) {
         if (!_isLinked()) return 0;
 
         ILBPair lbPair = _getLBPair();
@@ -163,7 +163,7 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
      * @param user The address of the user
      * @param ids The ids of the bins
      */
-    function claim(address user, uint256[] calldata ids) external virtual {
+    function claim(address user, uint256[] calldata ids) external virtual override {
         if (!_isLinked()) revert LBHooksBaseRewarder__UnlinkedHooks();
         if (!_isAuthorizedCaller(user)) revert LBHooksBaseRewarder__UnauthorizedCaller();
 
@@ -180,7 +180,7 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
      * @param deltaBinA The delta bin A
      * @param deltaBinB The delta bin B
      */
-    function setDeltaBins(int24 deltaBinA, int24 deltaBinB) external virtual onlyOwner {
+    function setDeltaBins(int24 deltaBinA, int24 deltaBinB) external virtual override onlyOwner {
         if (deltaBinA > deltaBinB) revert LBHooksBaseRewarder__InvalidDeltaBins();
         if (int256(deltaBinB) - deltaBinA > MAX_NUBER_OF_BINS) revert LBHooksBaseRewarder__ExceedsMaxNumberOfBins();
 
@@ -197,7 +197,7 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
      * @param token The address of the token
      * @param to The address of the recipient
      */
-    function sweep(IERC20 token, address to) external virtual onlyOwner {
+    function sweep(IERC20 token, address to) external virtual override onlyOwner {
         uint256 balance = _balanceOfThis(token);
 
         if (balance == 0) revert LBHooksBaseRewarder__ZeroBalance();

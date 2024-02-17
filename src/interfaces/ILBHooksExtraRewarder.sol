@@ -20,6 +20,11 @@ interface ILBHooksExtraRewarder is ILBHooksBaseRewarder {
 
     function getRemainingRewards() external view returns (uint256 remainingRewards);
 
+    function getRewarderParameter()
+        external
+        view
+        returns (uint256 rewardPerSecond, uint256 lastUpdateTimestamp, uint256 endTimestamp);
+
     function getParentRewarder() external view returns (ILBHooksRewarder);
 
     function setRewarderParameters(uint256 maxRewardPerSecond, uint256 startTimestamp, uint256 expectedDuration)

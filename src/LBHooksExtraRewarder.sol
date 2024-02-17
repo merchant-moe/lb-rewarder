@@ -32,6 +32,7 @@ contract LBHooksExtraRewarder is LBHooksBaseRewarder, ILBHooksExtraRewarder {
         external
         view
         virtual
+        override
         returns (uint256 rewardPerSecond, uint256 lastUpdateTimestamp, uint256 endTimestamp)
     {
         return (_rewardsPerSecond, _lastUpdateTimestamp, _endTimestamp);
@@ -41,7 +42,7 @@ contract LBHooksExtraRewarder is LBHooksBaseRewarder, ILBHooksExtraRewarder {
      * @dev Returns the remaining rewards
      * @return remainingRewards The remaining rewards
      */
-    function getRemainingRewards() external view virtual returns (uint256 remainingRewards) {
+    function getRemainingRewards() external view virtual override returns (uint256 remainingRewards) {
         return _balanceOfThis(_getRewardToken()) - _totalUnclaimedRewards - _getPendingTotalRewards();
     }
 
@@ -49,7 +50,7 @@ contract LBHooksExtraRewarder is LBHooksBaseRewarder, ILBHooksExtraRewarder {
      * @dev Returns the parent rewarder
      * @return parentRewarder The parent rewarder
      */
-    function getParentRewarder() external view virtual returns (ILBHooksRewarder) {
+    function getParentRewarder() external view virtual override returns (ILBHooksRewarder) {
         return _getParentRewarder();
     }
 
@@ -63,6 +64,7 @@ contract LBHooksExtraRewarder is LBHooksBaseRewarder, ILBHooksExtraRewarder {
     function setRewarderParameters(uint256 maxRewardPerSecond, uint256 startTimestamp, uint256 expectedDuration)
         external
         virtual
+        override
         onlyOwner
         returns (uint256 rewardPerSecond)
     {
@@ -78,6 +80,7 @@ contract LBHooksExtraRewarder is LBHooksBaseRewarder, ILBHooksExtraRewarder {
     function setRewardPerSecond(uint256 maxRewardPerSecond, uint256 expectedDuration)
         external
         virtual
+        override
         onlyOwner
         returns (uint256 rewardPerSecond)
     {
