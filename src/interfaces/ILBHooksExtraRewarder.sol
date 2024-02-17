@@ -5,7 +5,7 @@ import {ILBHooksBaseRewarder} from "./ILBHooksBaseRewarder.sol";
 import {ILBHooksRewarder} from "./ILBHooksRewarder.sol";
 
 interface ILBHooksExtraRewarder is ILBHooksBaseRewarder {
-    error LBHooksExtraRewarder__InvalidStartTimestamp(uint256 startTimestamp);
+    error LBHooksExtraRewarder__InvalidStartTimestamp();
     error LBHooksExtraRewarder__InvalidDuration();
     error LBHooksExtraRewarder__ZeroReward();
     error LBHooksExtraRewarder__Stopped();

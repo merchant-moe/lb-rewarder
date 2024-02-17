@@ -60,9 +60,9 @@ contract LBHooksExtraRewarder is LBHooksBaseRewarder, ILBHooksExtraRewarder {
         virtual
         returns (uint256 rewardPerSecond)
     {
-        if (startTimestamp < block.timestamp) startTimestamp = block.timestamp;
+        if (startTimestamp < block.timestamp) revert LBHooksExtraRewarder__InvalidStartTimestamp();
         if (!_isLinked()) revert LBHooksExtraRewarder__Stopped();
-        if (expectedDuration == 0 && maxRewardPerSecond != 0) revert LBHooksExtraRewarder__InvalidDuration();
+        if ((expectedDuration == 0) != (maxRewardPerSecond == 0)) revert LBHooksExtraRewarder__InvalidDuration();
 
         _updateAccruedRewardsPerShare();
 
@@ -79,8 +79,7 @@ contract LBHooksExtraRewarder is LBHooksBaseRewarder, ILBHooksExtraRewarder {
         _rewardsPerSecond = rewardPerSecond;
 
         _endTimestamp = endTimestamp;
-
-        if (startTimestamp != block.timestamp) _lastUpdateTimestamp = startTimestamp;
+        _lastUpdateTimestamp = startTimestamp;
 
         emit RewardParameterUpdated(rewardPerSecond, startTimestamp, endTimestamp);
     }
@@ -92,7 +91,7 @@ contract LBHooksExtraRewarder is LBHooksBaseRewarder, ILBHooksExtraRewarder {
     function _isLinked() internal view virtual override returns (bool linked) {
         ILBHooksRewarder parentRewarder = _getParentRewarder();
 
-        return Hooks.getHooks(parentRewarder.getExtraHooksParameters()) == address(this);
+        return Hooks.getHooks(parentRewarder.getExtraHooksParameters()) == address(this) && parentRewarder.isLinked();
     }
 
     function _isAuthorizedCaller(address) internal view virtual override returns (bool) {

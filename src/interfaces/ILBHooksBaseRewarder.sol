@@ -15,6 +15,7 @@ interface ILBHooksBaseRewarder is ILBHooks {
     error LBHooksBaseRewarder__NotNativeRewarder();
     error LBHooksBaseRewarder__NotImplemented();
     error LBHooksBaseRewarder__UnauthorizedCaller();
+    error LBHooksBaseRewarder__ExceedsMaxNumberOfBins();
 
     event DeltaBinsSet(int24 deltaBinA, int24 deltaBinB);
 

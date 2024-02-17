@@ -137,6 +137,45 @@ contract LBHooksBaseRewarderTest is TestHelper {
         assertApproxEqRel(hooks.getPendingRewards(alice, ids), 5e18, 1e14, "test_GetPendingRewardMintAndBurn::9");
         assertApproxEqRel(hooks.getPendingRewards(bob, ids), 2e18, 1e14, "test_GetPendingRewardMintAndBurn::10");
         assertApproxEqRel(rewardToken01.balanceOf(bob), 6e18, 1e14, "test_GetPendingRewardMintAndBurn::11");
+
+        uint256[] memory edgeIds = new uint256[](4);
+
+        edgeIds[0] = DEFAULT_ID - 201;
+        edgeIds[1] = DEFAULT_ID - 200;
+        edgeIds[2] = DEFAULT_ID + 200;
+        edgeIds[3] = DEFAULT_ID + 201;
+
+        assertEq(hooks.getPendingRewards(bob, edgeIds), 0, "test_GetPendingRewardMintAndBurn::12");
+
+        hooks.setDeltaBins(-200, -200 + 1);
+
+        assertEq(hooks.getPendingRewards(bob, edgeIds), 0, "test_GetPendingRewardMintAndBurn::13");
+
+        vm.warp(block.timestamp + 4);
+
+        // Try to claim the same bin more than once
+        ids.push(DEFAULT_ID);
+        ids.push(DEFAULT_ID);
+
+        vm.prank(bob);
+        hooks.claim(bob, ids);
+
+        assertEq(hooks.getPendingRewards(bob, ids), 0, "test_GetPendingRewardMintAndBurn::14");
+        assertApproxEqRel(rewardToken01.balanceOf(bob), 8e18, 1e14, "test_GetPendingRewardMintAndBurn::15");
+
+        vm.warp(block.timestamp + 4);
+
+        ids.pop();
+        ids.pop(); // remove the duplicate
+
+        ids.push(DEFAULT_ID - 200);
+
+        assertApproxEqRel(hooks.getPendingRewards(alice, ids), 5e18, 1e14, "test_GetPendingRewardMintAndBurn::16");
+        assertEq(hooks.getPendingRewards(bob, ids), 0, "test_GetPendingRewardMintAndBurn::17");
+
+        factory.removeLBHooksOnPair(token0, token1, DEFAULT_BIN_STEP);
+
+        assertEq(hooks.getPendingRewards(bob, ids), 0, "test_GetPendingRewardMintAndBurn::18");
     }
 
     function test_SendNative(bytes memory data) public {
@@ -222,6 +261,20 @@ contract LBHooksBaseRewarderTest is TestHelper {
         hooks.sweep(IERC20(address(rewardToken01)), alice);
 
         assertEq(rewardToken01.balanceOf(alice), 1e18, "test_Sweep::3");
+    }
+
+    function test_fuzz_SetDeltaBins(int24 deltaBinA, int24 deltaBinB) public {
+        deltaBinA = int24(bound(deltaBinA, type(int24).min + 1, type(int24).max));
+        deltaBinB = int24(bound(deltaBinB, type(int24).min, deltaBinA - 1));
+
+        vm.expectRevert(ILBHooksBaseRewarder.LBHooksBaseRewarder__InvalidDeltaBins.selector);
+        hooks.setDeltaBins(deltaBinA, deltaBinB);
+
+        deltaBinA = int24(bound(deltaBinA, type(int24).min, type(int24).max - 11 - 1));
+        deltaBinB = int24(bound(deltaBinB, deltaBinA + 11 + 1, type(int24).max));
+
+        vm.expectRevert(ILBHooksBaseRewarder.LBHooksBaseRewarder__ExceedsMaxNumberOfBins.selector);
+        hooks.setDeltaBins(deltaBinA, deltaBinB);
     }
 }
 

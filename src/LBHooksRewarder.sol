@@ -3,7 +3,7 @@ pragma solidity ^0.8.20;
 
 import {IERC20Metadata, IERC20} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
-import {ERC20Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/ERC20Upgradeable.sol";
+import {ERC20Upgradeable} from "@openzeppelin/contracts-upgradeable//token/ERC20/ERC20Upgradeable.sol";
 import {IMasterChef, IMasterChefRewarder} from "@moe-core/src/interfaces/IMasterChef.sol";
 import {ILBPair} from "@lb-protocol/src/interfaces/ILBPair.sol";
 import {LBHooksBaseRewarder, Hooks} from "./LBHooksBaseRewarder.sol";
@@ -99,9 +99,6 @@ contract LBHooksRewarder is LBHooksBaseRewarder, ERC20Upgradeable, ILBHooksRewar
         _approve(address(this), address(_masterChef), 1);
 
         _masterChef.deposit(_getPid(), 1);
-
-        bytes32 extraHooksParameters = _extraHooksParameters;
-        if (extraHooksParameters != 0) Hooks.onHooksSet(extraHooksParameters, data);
     }
 
     function _onClaim(address user, uint256[] calldata ids) internal virtual override {

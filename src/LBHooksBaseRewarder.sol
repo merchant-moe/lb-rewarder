@@ -5,7 +5,7 @@ import {SafeERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeE
 import {
     Ownable2StepUpgradeable,
     OwnableUpgradeable
-} from "@openzeppelin-upgradeable/contracts/access/Ownable2StepUpgradeable.sol";
+} from "@openzeppelin/contracts-upgradeable//access/Ownable2StepUpgradeable.sol";
 import {LBBaseHooks, ILBHooks} from "@lb-protocol/src/LBBaseHooks.sol";
 import {Uint256x256Math} from "@lb-protocol/src/libraries/math/Uint256x256Math.sol";
 import {Clone} from "@lb-protocol/src/libraries/Clone.sol";
@@ -22,6 +22,7 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
 
     address public immutable implementation;
 
+    int256 internal constant MAX_NUBER_OF_BINS = 11;
     uint8 internal constant OFFSET_PRECISION = 128;
     bytes32 internal constant FLAGS = Hooks.BEFORE_SWAP_FLAG | Hooks.BEFORE_MINT_FLAG | Hooks.AFTER_MINT_FLAG
         | Hooks.BEFORE_BURN_FLAG | Hooks.AFTER_BURN_FLAG | Hooks.BEFORE_TRANSFER_FLAG | Hooks.AFTER_TRANSFER_FLAG;
@@ -131,6 +132,7 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
 
     function setDeltaBins(int24 deltaBinA, int24 deltaBinB) external virtual onlyOwner {
         if (deltaBinA > deltaBinB) revert LBHooksBaseRewarder__InvalidDeltaBins();
+        if (int256(deltaBinB) - deltaBinA > MAX_NUBER_OF_BINS) revert LBHooksBaseRewarder__ExceedsMaxNumberOfBins();
 
         _updateAccruedRewardsPerShare();
 
