@@ -9,7 +9,7 @@ import {
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ImmutableClone} from "@lb-protocol/src/libraries/ImmutableClone.sol";
 import {Hooks, ILBHooks} from "@lb-protocol/src/libraries/Hooks.sol";
-import {ILBFactory, IERC20 as LB_IERC20} from "@lb-protocol/src/interfaces/ILBFactory.sol";
+import {ILBFactory} from "@lb-protocol/src/interfaces/ILBFactory.sol";
 import {ILBPair} from "@lb-protocol/src/interfaces/ILBPair.sol";
 import {IMasterChef} from "@moe-core/src/interfaces/IMasterChef.sol";
 import {IMasterChefRewarder} from "@moe-core/src/interfaces/IMasterChef.sol";
@@ -79,8 +79,8 @@ contract LBHooksManager is Ownable2StepUpgradeable, ILBHooksManager {
         _masterChef.add(IERC20(address(rewarder)), IMasterChefRewarder(address(0)));
 
         _lbFactory.setLBHooksParametersOnPair(
-            LB_IERC20(address(tokenX)),
-            LB_IERC20(address(tokenY)),
+            tokenX,
+            tokenY,
             binStep,
             Hooks.setHooks(hooksParameters, address(rewarder)),
             abi.encode(initialOwner, tokenX, tokenY, binStep)
@@ -117,7 +117,7 @@ contract LBHooksManager is Ownable2StepUpgradeable, ILBHooksManager {
         view
         returns (ILBPair lbPair, bytes32 hooksParameters)
     {
-        lbPair = _lbFactory.getLBPairInformation(LB_IERC20(address(tokenX)), LB_IERC20(address(tokenY)), binStep).LBPair;
+        lbPair = _lbFactory.getLBPairInformation(tokenX, tokenY, binStep).LBPair;
 
         if (address(lbPair) == address(0)) revert LBHooksManager__LBPairNotFound();
 

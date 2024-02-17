@@ -5,9 +5,7 @@ pragma solidity ^0.8.20;
 import "forge-std/Test.sol";
 
 import {LBFactory} from "@lb-protocol/src/LBFactory.sol";
-import {
-    LBPair, ILBPair, IERC20 as LB_IERC20, LiquidityConfigurations, Hooks, ILBHooks
-} from "@lb-protocol/src/LBPair.sol";
+import {LBPair, ILBPair, LiquidityConfigurations, Hooks, ILBHooks} from "@lb-protocol/src/LBPair.sol";
 import {ImmutableClone} from "@lb-protocol/src/libraries/ImmutableClone.sol";
 
 import "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
@@ -33,13 +31,13 @@ abstract contract TestHelper is Test {
     ILBPair public pair02;
     ILBPair public pair12;
 
-    LB_IERC20 public token0;
-    LB_IERC20 public token1;
-    LB_IERC20 public token2;
+    IERC20 public token0;
+    IERC20 public token1;
+    IERC20 public token2;
 
-    LB_IERC20 public rewardToken01;
-    LB_IERC20 public rewardToken02;
-    LB_IERC20 public rewardToken12;
+    IERC20 public rewardToken01;
+    IERC20 public rewardToken02;
+    IERC20 public rewardToken12;
 
     address public immutable alice = makeAddr("alice");
     address public immutable bob = makeAddr("bob");
@@ -57,15 +55,15 @@ abstract contract TestHelper is Test {
         ids.push(DEFAULT_ID + 1);
         ids.push(DEFAULT_ID + 2);
 
-        factory = new LBFactory(feeRecipient, 1e16);
+        factory = new LBFactory(feeRecipient, address(this), 1e16);
 
-        token0 = LB_IERC20(address(new MockERC20()));
-        token1 = LB_IERC20(address(new MockERC20()));
-        token2 = LB_IERC20(address(new MockERC20()));
+        token0 = IERC20(address(new MockERC20()));
+        token1 = IERC20(address(new MockERC20()));
+        token2 = IERC20(address(new MockERC20()));
 
-        rewardToken01 = LB_IERC20(address(new MockERC20()));
-        rewardToken02 = LB_IERC20(address(new MockERC20()));
-        rewardToken12 = LB_IERC20(address(new MockERC20()));
+        rewardToken01 = IERC20(address(new MockERC20()));
+        rewardToken02 = IERC20(address(new MockERC20()));
+        rewardToken12 = IERC20(address(new MockERC20()));
 
         address lbPairImplementation = address(new LBPair(factory));
 
