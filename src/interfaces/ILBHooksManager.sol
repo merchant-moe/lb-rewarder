@@ -7,8 +7,11 @@ import {ILBHooks} from "@lb-protocol/src/interfaces/ILBHooks.sol";
 import {ILBHooksRewarder} from "./ILBHooksRewarder.sol";
 import {ILBHooksExtraRewarder} from "./ILBHooksExtraRewarder.sol";
 
+/**
+ * @title LB Hooks Manager Interface
+ * @dev Interface for the LB Hooks Manager
+ */
 interface ILBHooksManager {
-    error LBHooksManager__AddressZero();
     error LBHooksManager__InvalidLBHooksType();
     error LBHooksManager__LBHooksParametersNotSet();
     error LBHooksManager__LBPairNotFound();

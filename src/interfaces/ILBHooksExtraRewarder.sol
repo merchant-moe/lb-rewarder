@@ -4,6 +4,10 @@ pragma solidity ^0.8.20;
 import {ILBHooksBaseRewarder} from "./ILBHooksBaseRewarder.sol";
 import {ILBHooksRewarder} from "./ILBHooksRewarder.sol";
 
+/**
+ * @title LB Hooks Extra Rewarder Interface
+ * @dev Interface for the LB Hooks Extra Rewarder
+ */
 interface ILBHooksExtraRewarder is ILBHooksBaseRewarder {
     error LBHooksExtraRewarder__InvalidStartTimestamp();
     error LBHooksExtraRewarder__InvalidDuration();

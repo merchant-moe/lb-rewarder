@@ -292,7 +292,7 @@ contract MockLBHooksRewarder is LBHooksBaseRewarder {
         _lastTimestamp = block.timestamp;
     }
 
-    function _update() internal override returns (uint256) {
+    function _updateRewards() internal override returns (uint256) {
         uint256 lastTimestamp = _lastTimestamp;
 
         if (block.timestamp > lastTimestamp) {

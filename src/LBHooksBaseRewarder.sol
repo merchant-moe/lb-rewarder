@@ -15,6 +15,10 @@ import {BinHelper} from "@lb-protocol/src/libraries/BinHelper.sol";
 import {Hooks} from "@lb-protocol/src/libraries/Hooks.sol";
 import {ILBHooksBaseRewarder} from "./interfaces/ILBHooksBaseRewarder.sol";
 
+/**
+ * @title LB Hooks Base Rewarder
+ * @dev Base contract for any LB Hooks Rewarder
+ */
 abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, Clone, ILBHooksBaseRewarder {
     using Uint256x256Math for uint256;
     using SafeERC20 for IERC20;
@@ -36,6 +40,10 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
     mapping(uint256 => Bin) internal _bins;
     mapping(address => uint256) internal _unclaimedRewards;
 
+    /**
+     * @dev Constructor of the contract
+     * @param LBHooksManager The address of the LBHooksManager contract
+     */
     constructor(address LBHooksManager) {
         implementation = address(this);
 
@@ -44,27 +52,60 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
         _disableInitializers();
     }
 
+    /**
+     * @dev Receive function called when the contract receives native tokens
+     */
     receive() external payable {
         _nativeReceived();
     }
 
+    /**
+     * @dev Fallback function called when the contract receives native tokens
+     */
     fallback() external payable {
         _nativeReceived();
     }
 
+    /**
+     * @dev Returns the reward token
+     * @return rewardToken The reward token
+     */
     function getRewardToken() external view virtual returns (IERC20) {
         return _getRewardToken();
     }
 
+    /**
+     * @dev Returns the LB Hooks Manager
+     * @return lbHooksManager The LB Hooks Manager
+     */
     function getLBHooksManager() external view virtual returns (address) {
         return _lbHooksManager;
     }
 
+    /**
+     * @dev Returns whether the rewarder is stopped
+     * @return isStopped Whether the rewarder is stopped
+     */
     function isStopped() external view virtual returns (bool) {
         return !_isLinked();
     }
 
-    // not safe if ids has duplicates
+    /**
+     * @dev Returns the rewarded range from [binStart, binEnd[ (exclusive)
+     * @return binStart The bin start to be rewarded
+     * @return binEnd The bin end to be rewarded, exclusive
+     */
+    function getRewardedRange() external view virtual returns (uint256 binStart, uint256 binEnd) {
+        (,, binStart, binEnd) = _getRewardedRange();
+    }
+
+    /**
+     * @dev Returns the pending rewards for the given user and ids
+     * The ids are expected to be unique, if they are not, the rewards returned might be greater than expected
+     * @param user The address of the user
+     * @param ids The ids of the bins
+     * @return pendingRewards The pending rewards
+     */
     function getPendingRewards(address user, uint256[] calldata ids) external view virtual returns (uint256) {
         if (!_isLinked()) return 0;
 
@@ -117,6 +158,11 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
         return pendingRewards + _unclaimedRewards[user_];
     }
 
+    /**
+     * @dev Claims the rewards for the given user and ids
+     * @param user The address of the user
+     * @param ids The ids of the bins
+     */
     function claim(address user, uint256[] calldata ids) external virtual {
         if (!_isLinked()) revert LBHooksBaseRewarder__UnlinkedHooks();
         if (!_isAuthorizedCaller(user)) revert LBHooksBaseRewarder__UnauthorizedCaller();
@@ -129,6 +175,11 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
         _claim(user, _unclaimedRewards[user]);
     }
 
+    /**
+     * @dev Sets the delta bins
+     * @param deltaBinA The delta bin A
+     * @param deltaBinB The delta bin B
+     */
     function setDeltaBins(int24 deltaBinA, int24 deltaBinB) external virtual onlyOwner {
         if (deltaBinA > deltaBinB) revert LBHooksBaseRewarder__InvalidDeltaBins();
         if (int256(deltaBinB) - deltaBinA > MAX_NUBER_OF_BINS) revert LBHooksBaseRewarder__ExceedsMaxNumberOfBins();
@@ -141,6 +192,11 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
         emit DeltaBinsSet(deltaBinA, deltaBinB);
     }
 
+    /**
+     * @dev Sweeps the given token to the given address
+     * @param token The address of the token
+     * @param to The address of the recipient
+     */
     function sweep(IERC20 token, address to) external virtual onlyOwner {
         uint256 balance = _balanceOfThis(token);
 
@@ -150,18 +206,39 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
         _safeTransfer(token, to, balance);
     }
 
+    /**
+     * @dev Internal function to return the balance of this contract for the given token
+     * address(0) is used for native tokens
+     * @param token The address of the token
+     * @return The balance of this contract for the given token
+     */
     function _balanceOfThis(IERC20 token) internal view virtual returns (uint256) {
         return address(token) == address(0) ? address(this).balance : token.balanceOf(address(this));
     }
 
+    /**
+     * @dev Internal function to return the reward token
+     * @return The reward token
+     */
     function _getRewardToken() internal view virtual returns (IERC20) {
         return IERC20(_getArgAddress(20));
     }
 
+    /**
+     * @dev Internal function to return whether the rewarder is linked
+     * @return Whether the rewarder is linked
+     */
     function _isAuthorizedCaller(address user) internal view virtual returns (bool) {
         return user == msg.sender;
     }
 
+    /**
+     * @dev Internal helper function to return the rewarded range
+     * @return rewardedIds The list of the rewarded ids from binStart to binEnd
+     * @return activeId The active id
+     * @return binStart The bin start to be rewarded
+     * @return binEnd The bin end to be rewarded
+     */
     function _getRewardedRange()
         internal
         view
@@ -186,6 +263,15 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
         }
     }
 
+    /**
+     * @dev Internal function to return the liquidity data for the given ids
+     * @param lbPair The LB Pair
+     * @param activeId The active id
+     * @param ids The ids of the bins
+     * @return liquiditiesX128 The liquidities for the given ids
+     * @return totalSuppliesX64 The total supplies for the given ids
+     * @return totalLiquiditiesX128 The total liquidities for the given ids
+     */
     function _getLiquidityData(ILBPair lbPair, uint24 activeId, uint256[] memory ids)
         internal
         view
@@ -213,6 +299,11 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
         }
     }
 
+    /**
+     * @dev Internal function to convert the liquidity configs to ids
+     * @param liquidityConfigs The liquidity configs
+     * @return ids The ids
+     */
     function _convertLiquidityConfigs(bytes32[] memory liquidityConfigs)
         internal
         pure
@@ -228,11 +319,22 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
         }
     }
 
+    /**
+     * @dev Internal function that allows the rewarder to receive native tokens only
+     * if the rewarded token is native, else it will revert
+     */
     function _nativeReceived() internal view virtual {
         if (_getImmutableArgsOffset() != 0) revert LBHooksBaseRewarder__NotImplemented();
         if (address(_getRewardToken()) != address(0)) revert LBHooksBaseRewarder__NotNativeRewarder();
     }
 
+    /**
+     * @dev Internal function to transfer the given amount of tokens to the given address
+     * address(0) is used for native tokens
+     * @param token The address of the token
+     * @param to The address of the recipient
+     * @param amount The amount of tokens
+     */
     function _safeTransfer(IERC20 token, address to, uint256 amount) internal virtual {
         if (amount > 0) {
             if (address(token) == address(0)) {
@@ -244,8 +346,11 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
         }
     }
 
+    /**
+     * @dev Internal function to update the accrued rewards per share
+     */
     function _updateAccruedRewardsPerShare() internal virtual {
-        uint256 pendingTotalRewards = _update();
+        uint256 pendingTotalRewards = _updateRewards();
 
         if (pendingTotalRewards == 0) return;
 
@@ -269,6 +374,11 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
         }
     }
 
+    /**
+     * @dev Internal function to update the user
+     * @param to The address of the user
+     * @param ids The ids of the bins
+     */
     function _updateUser(address to, uint256[] memory ids) internal virtual {
         ILBPair lbPair = _getLBPair();
 
@@ -299,6 +409,11 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
         }
     }
 
+    /**
+     * @dev Internal function to claim the rewards for the given user
+     * @param user The address of the user
+     * @param rewards The rewards to claim
+     */
     function _claim(address user, uint256 rewards) internal virtual {
         if (rewards == 0) return;
 
@@ -308,10 +423,21 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
         _safeTransfer(_getRewardToken(), user, rewards);
     }
 
+    /**
+     * @dev Override the internal function to return the LB Pair
+     * @return lbPair The LB Pair
+     */
     function _getLBPair() internal view virtual override returns (ILBPair) {
         return ILBPair(_getArgAddress(0));
     }
 
+    /**
+     * @dev Override the internal function that is called when the rewarder is set
+     * Will revert if the rewarder is already linked via the inializer modifier
+     * Will revert if the hooks parameters are not the expected ones
+     * @param hooksParameters The hooks parameters
+     * @param data The data used to initialize the rewarder; should at least contain the ABI encoded address of the owner
+     */
     function _onHooksSet(bytes32 hooksParameters, bytes calldata data) internal override initializer {
         if (hooksParameters != Hooks.setHooks(FLAGS, address(this))) {
             revert LBHooksBaseRewarder__InvalidHooksParameters();
@@ -323,19 +449,40 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
         _onHooksSet(data);
     }
 
+    /**
+     * @dev Override the internal function that is called before a swap on the LB Pair
+     * Will update the accrued rewards per share
+     */
     function _beforeSwap(address, address, bool, bytes32) internal virtual override {
         _updateAccruedRewardsPerShare();
     }
 
+    /**
+     * @dev Override the internal function that is called before a mint on the LB Pair
+     * Will update the accrued rewards per share and the user rewards
+     * @param to The address of the recipient of the LB Pair tokens
+     * @param liquidityConfigs The liquidity configs
+     */
     function _beforeMint(address, address to, bytes32[] calldata liquidityConfigs, bytes32) internal virtual override {
         _updateAccruedRewardsPerShare();
         _updateUser(to, _convertLiquidityConfigs(liquidityConfigs));
     }
 
+    /**
+     * @dev Override the internal function that is called after a mint on the LB Pair
+     * Will claim the rewards for the recipient
+     * @param to The address of the recipient of the LB Pair tokens
+     */
     function _afterMint(address, address to, bytes32[] calldata, bytes32) internal virtual override {
         _claim(to, _unclaimedRewards[to]);
     }
 
+    /**
+     * @dev Override the internal function that is called before a burn on the LB Pair
+     * Will update the accrued rewards per share and the user rewards
+     * @param from The address of the sender of the LB Pair tokens
+     * @param ids The ids of the bins
+     */
     function _beforeBurn(address, address from, address, uint256[] calldata ids, uint256[] calldata)
         internal
         virtual
@@ -345,6 +492,11 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
         _updateUser(from, ids);
     }
 
+    /**
+     * @dev Override the internal function that is called after a burn on the LB Pair
+     * Will claim the rewards for the sender
+     * @param from The address of the sender of the LB Pair tokens
+     */
     function _afterBurn(address, address from, address, uint256[] calldata, uint256[] calldata)
         internal
         virtual
@@ -353,6 +505,13 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
         _claim(from, _unclaimedRewards[from]);
     }
 
+    /**
+     * @dev Override the internal function that is called before a transfer on the LB Pair
+     * Will update the accrued rewards per share and both the sender and recipient rewards
+     * @param from The address of the sender of the LB Pair tokens
+     * @param to The address of the recipient of the LB Pair tokens
+     * @param ids The ids of the bins
+     */
     function _beforeBatchTransferFrom(address, address from, address to, uint256[] calldata ids, uint256[] calldata)
         internal
         virtual
@@ -364,6 +523,11 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
         _updateUser(to, ids);
     }
 
+    /**
+     * @dev Override the internal function that is called after a transfer on the LB Pair
+     * Will claim the rewards for the sender only
+     * @param from The address of the sender of the LB Pair tokens
+     */
     function _afterBatchTransferFrom(address, address from, address, uint256[] calldata, uint256[] calldata)
         internal
         virtual
@@ -372,11 +536,28 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
         _claim(from, _unclaimedRewards[from]);
     }
 
+    /**
+     * @dev Internal function that can be overriden to add custom logic when the rewarder is set
+     * @param data The data used to initialize the rewarder
+     */
     function _onHooksSet(bytes calldata data) internal virtual {}
 
+    /**
+     * @dev Internal function that can be overriden to add custom logic when the rewards are claimed
+     * @param user The address of the user
+     * @param ids The ids of the bins
+     */
     function _onClaim(address user, uint256[] calldata ids) internal virtual {}
 
+    /**
+     * @dev Internal function that **MUST** be overriden to return the total pending rewards
+     * @return pendingTotalRewards The total pending rewards
+     */
     function _getPendingTotalRewards() internal view virtual returns (uint256 pendingTotalRewards);
 
-    function _update() internal virtual returns (uint256 pendingTotalRewards);
+    /**
+     * @dev Internal function that **MUST** be overriden to update and return the total pending rewards
+     * @return pendingTotalRewards The total pending rewards
+     */
+    function _updateRewards() internal virtual returns (uint256 pendingTotalRewards);
 }

@@ -5,9 +5,11 @@ import {IMasterChef} from "@moe-core/src/interfaces/IMasterChef.sol";
 import {ILBHooksBaseRewarder} from "./ILBHooksBaseRewarder.sol";
 import {ILBHooksExtraRewarder} from "./ILBHooksExtraRewarder.sol";
 
+/**
+ * @title LB Hooks Rewarder Interface
+ * @dev Interface for the LB Hooks Rewarder
+ */
 interface ILBHooksRewarder is ILBHooksBaseRewarder {
-    error LBHooksRewarder__NotNativeRewarder();
-    error LBHooksBaseRewarder__InvalidRewardToken();
     error LBHooksRewarder__InvalidLBHooksExtraRewarder();
 
     event LBHooksExtraRewarderSet(ILBHooksExtraRewarder lbHooksExtraRewarder);
