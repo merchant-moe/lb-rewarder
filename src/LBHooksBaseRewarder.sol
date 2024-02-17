@@ -6,7 +6,7 @@ import {
     Ownable2StepUpgradeable,
     OwnableUpgradeable
 } from "@openzeppelin/contracts-upgradeable//access/Ownable2StepUpgradeable.sol";
-import {LBBaseHooks, ILBHooks} from "@lb-protocol/src/LBBaseHooks.sol";
+import {LBBaseHooks} from "@lb-protocol/src/LBBaseHooks.sol";
 import {Uint256x256Math} from "@lb-protocol/src/libraries/math/Uint256x256Math.sol";
 import {Clone} from "@lb-protocol/src/libraries/Clone.sol";
 import {ILBPair} from "@lb-protocol/src/interfaces/ILBPair.sol";
@@ -14,7 +14,6 @@ import {PriceHelper} from "@lb-protocol/src/libraries/PriceHelper.sol";
 import {BinHelper} from "@lb-protocol/src/libraries/BinHelper.sol";
 import {Hooks} from "@lb-protocol/src/libraries/Hooks.sol";
 import {ILBHooksBaseRewarder} from "./interfaces/ILBHooksBaseRewarder.sol";
-import {ILBHooksExtraRewarder} from "./interfaces/ILBHooksExtraRewarder.sol";
 
 abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, Clone, ILBHooksBaseRewarder {
     using Uint256x256Math for uint256;
