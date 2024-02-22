@@ -137,7 +137,7 @@ contract LBHooksExtraRewarder is LBHooksBaseRewarder, ILBHooksExtraRewarder {
     /**
      * @dev Overrides the internal function to check the caller to only allow the parent rewarder
      */
-    function _checkCaller() internal view virtual override {
+    function _checkTrustedCaller() internal view virtual override {
         if (address(_getParentRewarder()) != msg.sender) revert LBHooksExtraRewarder__UnauthorizedCaller();
     }
 
