@@ -193,6 +193,7 @@ contract LBHooksManager is Ownable2StepUpgradeable, ILBHooksManager {
         lbPair = _lbFactory.getLBPairInformation(tokenX, tokenY, binStep).LBPair;
 
         if (address(lbPair) == address(0)) revert LBHooksManager__LBPairNotFound();
+        if (lbPair.getTokenX() != tokenX) revert LBHooksManager__UnorderedTokens();
 
         hooksParameters = _lbHooksParameters[lbHooksType];
 

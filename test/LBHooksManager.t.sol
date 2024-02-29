@@ -80,6 +80,11 @@ contract LBHooksManagerTest is TestHelper {
             IERC20(address(token0)), IERC20(address(token0)), DEFAULT_BIN_STEP, address(this)
         );
 
+        vm.expectRevert(ILBHooksManager.LBHooksManager__UnorderedTokens.selector);
+        lbHooksManager.createLBHooksRewarder(
+            IERC20(address(token1)), IERC20(address(token0)), DEFAULT_BIN_STEP, address(this)
+        );
+
         vm.expectRevert(ILBHooksManager.LBHooksManager__LBHooksParametersNotSet.selector);
         lbHooksManager.createLBHooksRewarder(
             IERC20(address(token0)), IERC20(address(token1)), DEFAULT_BIN_STEP, address(this)
@@ -120,6 +125,11 @@ contract LBHooksManagerTest is TestHelper {
         vm.expectRevert(ILBHooksManager.LBHooksManager__LBPairNotFound.selector);
         lbHooksManager.createLBHooksExtraRewarder(
             IERC20(address(token0)), IERC20(address(token0)), DEFAULT_BIN_STEP, IERC20(address(0)), address(this)
+        );
+
+        vm.expectRevert(ILBHooksManager.LBHooksManager__UnorderedTokens.selector);
+        lbHooksManager.createLBHooksExtraRewarder(
+            IERC20(address(token1)), IERC20(address(token0)), DEFAULT_BIN_STEP, IERC20(address(0)), address(this)
         );
 
         vm.expectRevert(ILBHooksManager.LBHooksManager__LBHooksParametersNotSet.selector);

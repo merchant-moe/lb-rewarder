@@ -16,6 +16,7 @@ interface ILBHooksManager {
     error LBHooksManager__LBHooksParametersNotSet();
     error LBHooksManager__LBPairNotFound();
     error LBHooksManager__LBHooksNotSetOnPair();
+    error LBHooksManager__UnorderedTokens();
 
     enum LBHooksType {
         Invalid,
