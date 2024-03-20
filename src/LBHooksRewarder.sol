@@ -5,7 +5,6 @@ import {IERC20Metadata, IERC20} from "@openzeppelin/contracts/token/ERC20/extens
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {ERC20Upgradeable} from "@openzeppelin/contracts-upgradeable//token/ERC20/ERC20Upgradeable.sol";
 import {IMasterChef, IMasterChefRewarder} from "@moe-core/src/interfaces/IMasterChef.sol";
-import {ILBPair} from "@lb-protocol/src/interfaces/ILBPair.sol";
 import {LBHooksBaseRewarder, Hooks} from "./LBHooksBaseRewarder.sol";
 import {ILBHooksRewarder} from "./interfaces/ILBHooksRewarder.sol";
 import {ILBHooksExtraRewarder} from "./interfaces/ILBHooksExtraRewarder.sol";
