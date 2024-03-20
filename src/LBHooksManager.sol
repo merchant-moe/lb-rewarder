@@ -25,7 +25,6 @@ import {ILBHooksManager} from "./interfaces/ILBHooksManager.sol";
 contract LBHooksManager is Ownable2StepUpgradeable, ILBHooksManager {
     ILBFactory internal immutable _lbFactory;
     IMasterChef internal immutable _masterChef;
-    IERC20 internal immutable _moe;
 
     mapping(LBHooksType => bytes32) private _lbHooksParameters;
 
@@ -36,12 +35,10 @@ contract LBHooksManager is Ownable2StepUpgradeable, ILBHooksManager {
      * @dev Constructor of the contract
      * @param lbFactory The address of the LBFactory contract
      * @param masterChef The address of the MasterChef contract
-     * @param moe The address of the MOE token
      */
-    constructor(ILBFactory lbFactory, IMasterChef masterChef, IERC20 moe) {
+    constructor(ILBFactory lbFactory, IMasterChef masterChef) {
         _lbFactory = lbFactory;
         _masterChef = masterChef;
-        _moe = moe;
 
         _disableInitializers();
     }

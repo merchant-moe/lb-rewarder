@@ -97,8 +97,7 @@ abstract contract TestHelper is Test {
         moe = IERC20(address(new MockERC20()));
         masterchef = IMasterChef(address(new MockMasterChef(moe)));
 
-        address lbHooksManagerImplementation =
-            address(new LBHooksManager(factory, IMasterChef(address(masterchef)), IERC20(address(moe))));
+        address lbHooksManagerImplementation = address(new LBHooksManager(factory, IMasterChef(address(masterchef))));
 
         lbHooksManager = LBHooksManager(
             address(
