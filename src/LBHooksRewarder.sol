@@ -112,8 +112,9 @@ contract LBHooksRewarder is LBHooksBaseRewarder, ERC20Upgradeable, ILBHooksRewar
         pids[0] = _getPid();
 
         (uint256[] memory moeRewards,,) = _masterChef.getPendingRewards(address(this), pids);
+        uint256 remainingBalance = _balanceOfThis(_getRewardToken()) - _totalUnclaimedRewards;
 
-        return moeRewards[0];
+        return moeRewards[0] + remainingBalance;
     }
 
     /**

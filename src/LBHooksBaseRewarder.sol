@@ -122,7 +122,7 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
 
         address user_ = user; // Avoid stack too deep error
 
-        uint256 pendingTotalRewards = _getPendingTotalRewards() + _balanceOfThis(_getRewardToken());
+        uint256 pendingTotalRewards = _getPendingTotalRewards();
         uint256 pendingRewards;
 
         for (uint256 i; i < ids_.length; ++i) {
