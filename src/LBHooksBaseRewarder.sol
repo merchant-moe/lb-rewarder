@@ -13,6 +13,8 @@ import {ILBPair} from "@lb-protocol/src/interfaces/ILBPair.sol";
 import {PriceHelper} from "@lb-protocol/src/libraries/PriceHelper.sol";
 import {BinHelper} from "@lb-protocol/src/libraries/BinHelper.sol";
 import {Hooks} from "@lb-protocol/src/libraries/Hooks.sol";
+import {SafeCast} from "@lb-protocol/src/libraries/math/SafeCast.sol";
+
 import {ILBHooksBaseRewarder} from "./interfaces/ILBHooksBaseRewarder.sol";
 
 /**
@@ -22,10 +24,11 @@ import {ILBHooksBaseRewarder} from "./interfaces/ILBHooksBaseRewarder.sol";
 abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, Clone, ILBHooksBaseRewarder {
     using Uint256x256Math for uint256;
     using SafeERC20 for IERC20;
+    using SafeCast for uint256;
 
     address public immutable implementation;
 
-    int256 internal constant MAX_NUBER_OF_BINS = 11;
+    int256 internal constant MAX_NUMBER_OF_BINS = 11;
     uint8 internal constant OFFSET_PRECISION = 128;
     bytes32 internal constant FLAGS = Hooks.BEFORE_SWAP_FLAG | Hooks.BEFORE_MINT_FLAG | Hooks.AFTER_MINT_FLAG
         | Hooks.BEFORE_BURN_FLAG | Hooks.AFTER_BURN_FLAG | Hooks.BEFORE_TRANSFER_FLAG | Hooks.AFTER_TRANSFER_FLAG;
@@ -121,7 +124,7 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
         uint256 pendingRewards;
 
         for (uint256 i; i < ids.length; ++i) {
-            uint24 id = uint24(ids[i]);
+            uint24 id = ids[i].safe24();
 
             uint256 accRewardsPerShareX64;
             uint256 userAccRewardsPerShareX64;
@@ -182,7 +185,7 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
      */
     function setDeltaBins(int24 deltaBinA, int24 deltaBinB) external virtual override onlyOwner {
         if (deltaBinA > deltaBinB) revert LBHooksBaseRewarder__InvalidDeltaBins();
-        if (int256(deltaBinB) - deltaBinA > MAX_NUBER_OF_BINS) revert LBHooksBaseRewarder__ExceedsMaxNumberOfBins();
+        if (int256(deltaBinB) - deltaBinA > MAX_NUMBER_OF_BINS) revert LBHooksBaseRewarder__ExceedsMaxNumberOfBins();
 
         _updateAccruedRewardsPerShare();
 
@@ -258,7 +261,7 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
 
         for (uint256 i; i < length; ++i) {
             unchecked {
-                rewardedIds[i] = uint24(binStart + i);
+                rewardedIds[i] = (binStart + i).safe24();
             }
         }
     }
@@ -285,7 +288,7 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
         totalSuppliesX64 = new uint256[](length);
 
         for (uint256 i; i < length; ++i) {
-            uint24 id = uint24(ids[i]);
+            uint24 id = ids[i].safe24();
 
             (uint128 binReserveX, uint128 binReserveY) = lbPair.getBin(id);
 
@@ -315,7 +318,7 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
         ids = new uint256[](length);
 
         for (uint256 i; i < length; ++i) {
-            ids[i] = uint24(uint256(liquidityConfigs[i]));
+            ids[i] = uint256(liquidityConfigs[i]).safe24();
         }
     }
 
@@ -385,7 +388,7 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
         uint256 length = ids.length;
         uint256 pendingRewards;
         for (uint256 i; i < length; ++i) {
-            uint24 id = uint24(ids[i]);
+            uint24 id = ids[i].safe24();
             uint256 balanceX64 = lbPair.balanceOf(to, id);
 
             Bin storage bin = _bins[id];
