@@ -471,15 +471,6 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
     }
 
     /**
-     * @dev Override the internal function that is called after a mint on the LB Pair
-     * Will claim the rewards for the recipient
-     * @param to The address of the recipient of the LB Pair tokens
-     */
-    function _afterMint(address, address to, bytes32[] calldata, bytes32) internal virtual override {
-        _claim(to, _unclaimedRewards[to]);
-    }
-
-    /**
      * @dev Override the internal function that is called before a burn on the LB Pair
      * Will update the accrued rewards per share and the user rewards
      * @param from The address of the sender of the LB Pair tokens
@@ -492,19 +483,6 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
     {
         _updateAccruedRewardsPerShare();
         _updateUser(from, ids);
-    }
-
-    /**
-     * @dev Override the internal function that is called after a burn on the LB Pair
-     * Will claim the rewards for the sender
-     * @param from The address of the sender of the LB Pair tokens
-     */
-    function _afterBurn(address, address from, address, uint256[] calldata, uint256[] calldata)
-        internal
-        virtual
-        override
-    {
-        _claim(from, _unclaimedRewards[from]);
     }
 
     /**
@@ -523,19 +501,6 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
 
         _updateUser(from, ids);
         _updateUser(to, ids);
-    }
-
-    /**
-     * @dev Override the internal function that is called after a transfer on the LB Pair
-     * Will claim the rewards for the sender only
-     * @param from The address of the sender of the LB Pair tokens
-     */
-    function _afterBatchTransferFrom(address, address from, address, uint256[] calldata, uint256[] calldata)
-        internal
-        virtual
-        override
-    {
-        _claim(from, _unclaimedRewards[from]);
     }
 
     /**
