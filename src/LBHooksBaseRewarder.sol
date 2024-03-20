@@ -170,9 +170,7 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
         _updateAccruedRewardsPerShare();
         _updateUser(user, ids);
 
-        _onClaim(user, ids);
-
-        _claim(user, _unclaimedRewards[user]);
+        _claim(user, ids, _unclaimedRewards[user]);
     }
 
     /**
@@ -414,13 +412,16 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
     /**
      * @dev Internal function to claim the rewards for the given user
      * @param user The address of the user
+     * @param ids The ids of the bins
      * @param rewards The rewards to claim
      */
-    function _claim(address user, uint256 rewards) internal virtual {
+    function _claim(address user, uint256[] memory ids, uint256 rewards) internal virtual {
         if (rewards == 0) return;
 
         _totalUnclaimedRewards -= rewards;
         _unclaimedRewards[user] -= rewards;
+
+        _onClaim(user, ids);
 
         _safeTransfer(_getRewardToken(), user, rewards);
     }
