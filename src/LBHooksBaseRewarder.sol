@@ -112,6 +112,8 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
     function getPendingRewards(address user, uint256[] calldata ids) external view virtual override returns (uint256) {
         if (!_isLinked()) return 0;
 
+        uint256[] calldata ids_ = ids; // Avoid stack too deep error
+
         ILBPair lbPair = _getLBPair();
 
         (uint256[] memory rewardedIds, uint24 activeId, uint256 binStart, uint256 binEnd) = _getRewardedRange();
@@ -123,8 +125,8 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
         uint256 pendingTotalRewards = _getPendingTotalRewards() + _balanceOfThis(_getRewardToken());
         uint256 pendingRewards;
 
-        for (uint256 i; i < ids.length; ++i) {
-            uint24 id = ids[i].safe24();
+        for (uint256 i; i < ids_.length; ++i) {
+            uint24 id = ids_[i].safe24();
 
             uint256 accRewardsPerShareX64;
             uint256 userAccRewardsPerShareX64;
@@ -318,7 +320,7 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
         ids = new uint256[](length);
 
         for (uint256 i; i < length; ++i) {
-            ids[i] = uint256(liquidityConfigs[i]).safe24();
+            ids[i] = uint24(uint256(liquidityConfigs[i]));
         }
     }
 
@@ -518,7 +520,7 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
      * @param user The address of the user
      * @param ids The ids of the bins
      */
-    function _onClaim(address user, uint256[] calldata ids) internal virtual {}
+    function _onClaim(address user, uint256[] memory ids) internal virtual {}
 
     /**
      * @dev Internal function that **MUST** be overriden to return the total pending rewards

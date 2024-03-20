@@ -161,7 +161,7 @@ contract LBHooksRewarder is LBHooksBaseRewarder, ERC20Upgradeable, ILBHooksRewar
      * @param user The address of the user
      * @param ids The ids of the LP tokens
      */
-    function _onClaim(address user, uint256[] calldata ids) internal virtual override {
+    function _onClaim(address user, uint256[] memory ids) internal virtual override {
         bytes32 extraHooksParameters = _extraHooksParameters;
         if (extraHooksParameters != 0) ILBHooksExtraRewarder(Hooks.getHooks(extraHooksParameters)).claim(user, ids);
     }
