@@ -5,6 +5,8 @@ import {LBHooksBaseRewarder, Hooks} from "./LBHooksBaseRewarder.sol";
 import {ILBHooksExtraRewarder} from "./interfaces/ILBHooksExtraRewarder.sol";
 import {ILBHooksRewarder} from "./interfaces/ILBHooksRewarder.sol";
 
+import {TokenHelper} from "./library/TokenHelper.sol";
+
 /**
  * @title LB Hooks Extra Rewarder
  * @dev This contract will be used as a second rewarder on top of the main rewarder to distribute a second token to the LPs
@@ -42,7 +44,8 @@ contract LBHooksExtraRewarder is LBHooksBaseRewarder, ILBHooksExtraRewarder {
      * @return remainingRewards The remaining rewards
      */
     function getRemainingRewards() external view virtual override returns (uint256 remainingRewards) {
-        return _balanceOfThis(_getRewardToken()) - _totalUnclaimedRewards - _getPendingTotalRewards();
+        uint256 balance = TokenHelper.safeBalanceOf(_getRewardToken(), address(this));
+        return balance - _totalUnclaimedRewards - _getPendingTotalRewards();
     }
 
     /**
@@ -115,7 +118,7 @@ contract LBHooksExtraRewarder is LBHooksBaseRewarder, ILBHooksExtraRewarder {
 
         _updateAccruedRewardsPerShare();
 
-        uint256 remainingReward = _balanceOfThis(_getRewardToken()) - _totalUnclaimedRewards;
+        uint256 remainingReward = TokenHelper.safeBalanceOf(_getRewardToken(), address(this)) - _totalUnclaimedRewards;
         uint256 maxExpectedReward = maxRewardPerSecond * expectedDuration;
 
         rewardPerSecond = maxExpectedReward > remainingReward ? remainingReward / expectedDuration : maxRewardPerSecond;

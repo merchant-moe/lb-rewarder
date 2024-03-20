@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {SafeERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {
     Ownable2StepUpgradeable,
     OwnableUpgradeable
@@ -16,6 +15,7 @@ import {Hooks} from "@lb-protocol/src/libraries/Hooks.sol";
 import {SafeCast} from "@lb-protocol/src/libraries/math/SafeCast.sol";
 
 import {ILBHooksBaseRewarder} from "./interfaces/ILBHooksBaseRewarder.sol";
+import {TokenHelper, IERC20} from "./library/TokenHelper.sol";
 
 /**
  * @title LB Hooks Base Rewarder
@@ -23,7 +23,6 @@ import {ILBHooksBaseRewarder} from "./interfaces/ILBHooksBaseRewarder.sol";
  */
 abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, Clone, ILBHooksBaseRewarder {
     using Uint256x256Math for uint256;
-    using SafeERC20 for IERC20;
     using SafeCast for uint256;
 
     address public immutable implementation;
@@ -203,22 +202,12 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
      * @param to The address of the recipient
      */
     function sweep(IERC20 token, address to) external virtual override onlyOwner {
-        uint256 balance = _balanceOfThis(token);
+        uint256 balance = TokenHelper.safeBalanceOf(token, address(this));
 
         if (balance == 0) revert LBHooksBaseRewarder__ZeroBalance();
         if (_isLinked() && token == _getRewardToken()) revert LBHooksBaseRewarder__LockedRewardToken();
 
-        _safeTransfer(token, to, balance);
-    }
-
-    /**
-     * @dev Internal function to return the balance of this contract for the given token
-     * address(0) is used for native tokens
-     * @param token The address of the token
-     * @return The balance of this contract for the given token
-     */
-    function _balanceOfThis(IERC20 token) internal view virtual returns (uint256) {
-        return address(token) == address(0) ? address(this).balance : token.balanceOf(address(this));
+        TokenHelper.safeTransfer(token, to, balance);
     }
 
     /**
@@ -334,24 +323,6 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
     }
 
     /**
-     * @dev Internal function to transfer the given amount of tokens to the given address
-     * address(0) is used for native tokens
-     * @param token The address of the token
-     * @param to The address of the recipient
-     * @param amount The amount of tokens
-     */
-    function _safeTransfer(IERC20 token, address to, uint256 amount) internal virtual {
-        if (amount > 0) {
-            if (address(token) == address(0)) {
-                (bool s,) = to.call{value: amount}("");
-                if (!s) revert LBHooksBaseRewarder__NativeTransferFailed();
-            } else {
-                token.safeTransfer(to, amount);
-            }
-        }
-    }
-
-    /**
      * @dev Internal function to update the accrued rewards per share
      */
     function _updateAccruedRewardsPerShare() internal virtual {
@@ -428,7 +399,7 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
 
         _onClaim(user, ids);
 
-        _safeTransfer(_getRewardToken(), user, rewards);
+        TokenHelper.safeTransfer(_getRewardToken(), user, rewards);
     }
 
     /**

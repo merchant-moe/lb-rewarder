@@ -305,7 +305,7 @@ contract MockLBHooksRewarder is LBHooksBaseRewarder {
             _lastTimestamp = block.timestamp;
         }
 
-        return _balanceOfThis(_getRewardToken()) - _totalUnclaimedRewards;
+        return TokenHelper.safeBalanceOf(_getRewardToken(), address(this)) - _totalUnclaimedRewards;
     }
 
     function _getPendingTotalRewards() internal view override returns (uint256 pendingTotalRewards) {

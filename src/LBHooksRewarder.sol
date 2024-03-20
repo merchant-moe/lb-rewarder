@@ -9,6 +9,8 @@ import {LBHooksBaseRewarder, Hooks} from "./LBHooksBaseRewarder.sol";
 import {ILBHooksRewarder} from "./interfaces/ILBHooksRewarder.sol";
 import {ILBHooksExtraRewarder} from "./interfaces/ILBHooksExtraRewarder.sol";
 
+import {TokenHelper} from "./library/TokenHelper.sol";
+
 /**
  * @title LB Hooks Rewarder
  * @dev Main contract for the LB Hooks Rewarder
@@ -112,7 +114,7 @@ contract LBHooksRewarder is LBHooksBaseRewarder, ERC20Upgradeable, ILBHooksRewar
         pids[0] = _getPid();
 
         (uint256[] memory moeRewards,,) = _masterChef.getPendingRewards(address(this), pids);
-        uint256 remainingBalance = _balanceOfThis(_getRewardToken()) - _totalUnclaimedRewards;
+        uint256 remainingBalance = TokenHelper.safeBalanceOf(_getRewardToken(), address(this)) - _totalUnclaimedRewards;
 
         return moeRewards[0] + remainingBalance;
     }
@@ -125,7 +127,7 @@ contract LBHooksRewarder is LBHooksBaseRewarder, ERC20Upgradeable, ILBHooksRewar
     function _updateRewards() internal virtual override returns (uint256 pendingTotalRewards) {
         _masterChef.deposit(_getPid(), 0);
 
-        uint256 balance = _balanceOfThis(_getRewardToken());
+        uint256 balance = TokenHelper.safeBalanceOf(_getRewardToken(), address(this));
         pendingTotalRewards = balance - _totalUnclaimedRewards;
 
         return pendingTotalRewards;
