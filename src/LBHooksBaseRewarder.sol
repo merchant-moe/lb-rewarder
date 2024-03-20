@@ -177,6 +177,8 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
 
     /**
      * @dev Sets the delta bins
+     * The delta bins are used to determine the range of bins to be rewarded,
+     * from [activeId + deltaBinA, activeId + deltaBinB[ (exclusive).
      * @param deltaBinA The delta bin A
      * @param deltaBinB The delta bin B
      */
