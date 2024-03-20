@@ -188,24 +188,32 @@ contract LBHooksExtraRewarderTest is TestHelper {
         assertApproxEqRel(
             lbHooks.getPendingRewards(alice, ids), 5.25e18, 1e14, "test_GetPendingRewardSwapAndTransfer::37"
         );
-        assertEq(lbHooks.getPendingRewards(bob, ids), 0, "test_GetPendingRewardSwapAndTransfer::38");
-        assertApproxEqRel(moe.balanceOf(bob), 5.75e18, 1e14, "test_GetPendingRewardSwapAndTransfer::39");
+        assertApproxEqRel(
+            lbHooks.getPendingRewards(bob, ids), 5.75e18, 1e15, "test_GetPendingRewardSwapAndTransfer::38"
+        );
+        assertEq(moe.balanceOf(bob), 0, "test_GetPendingRewardSwapAndTransfer::39");
 
         assertApproxEqRel(
             lbHooksExtra.getPendingRewards(alice, ids), 2.75e18, 1e14, "test_GetPendingRewardSwapAndTransfer::40"
         );
-        assertEq(lbHooksExtra.getPendingRewards(bob, ids), 0, "test_GetPendingRewardSwapAndTransfer::41");
-        assertApproxEqRel(rewardToken01.balanceOf(bob), 8.25e18, 1e14, "test_GetPendingRewardSwapAndTransfer::42");
+        assertApproxEqRel(
+            lbHooksExtra.getPendingRewards(bob, ids), 8.25e18, 1e14, "test_GetPendingRewardSwapAndTransfer::41"
+        );
+        assertEq(rewardToken01.balanceOf(bob), 0, "test_GetPendingRewardSwapAndTransfer::42");
 
         vm.prank(alice);
         lbHooks.claim(alice, ids);
 
         assertEq(lbHooks.getPendingRewards(alice, ids), 0, "test_GetPendingRewardSwapAndTransfer::43");
-        assertEq(lbHooks.getPendingRewards(bob, ids), 0, "test_GetPendingRewardSwapAndTransfer::44");
+        assertApproxEqRel(
+            lbHooks.getPendingRewards(bob, ids), 5.75e18, 1e14, "test_GetPendingRewardSwapAndTransfer::44"
+        );
         assertApproxEqRel(moe.balanceOf(alice), 5.25e18, 1e14, "test_GetPendingRewardSwapAndTransfer::45");
 
         assertEq(lbHooksExtra.getPendingRewards(alice, ids), 0, "test_GetPendingRewardSwapAndTransfer::46");
-        assertEq(lbHooksExtra.getPendingRewards(bob, ids), 0, "test_GetPendingRewardSwapAndTransfer::47");
+        assertApproxEqRel(
+            lbHooksExtra.getPendingRewards(bob, ids), 8.25e18, 1e14, "test_GetPendingRewardSwapAndTransfer::47"
+        );
         assertApproxEqRel(rewardToken01.balanceOf(alice), 2.75e18, 1e14, "test_GetPendingRewardSwapAndTransfer::48");
 
         vm.warp(block.timestamp + 10);
@@ -220,7 +228,9 @@ contract LBHooksExtraRewarderTest is TestHelper {
         assertApproxEqRel(
             lbHooks.getPendingRewards(alice, ids), 2.5e18, 1e14, "test_GetPendingRewardSwapAndTransfer::50"
         );
-        assertApproxEqRel(lbHooks.getPendingRewards(bob, ids), 7.5e18, 1e14, "test_GetPendingRewardSwapAndTransfer::51");
+        assertApproxEqRel(
+            lbHooks.getPendingRewards(bob, ids), 5.75e18 + 7.5e18, 1e14, "test_GetPendingRewardSwapAndTransfer::51"
+        );
 
         assertEq(lbHooksExtra.getPendingRewards(alice, ids), 0, "test_GetPendingRewardSwapAndTransfer::52");
         assertEq(lbHooksExtra.getPendingRewards(bob, ids), 0, "test_GetPendingRewardSwapAndTransfer::53");
@@ -229,7 +239,9 @@ contract LBHooksExtraRewarderTest is TestHelper {
         lbHooks.claim(alice, ids);
 
         assertEq(lbHooks.getPendingRewards(alice, ids), 0, "test_GetPendingRewardSwapAndTransfer::54");
-        assertApproxEqRel(lbHooks.getPendingRewards(bob, ids), 7.5e18, 1e14, "test_GetPendingRewardSwapAndTransfer::55");
+        assertApproxEqRel(
+            lbHooks.getPendingRewards(bob, ids), 5.75e18 + 7.5e18, 1e14, "test_GetPendingRewardSwapAndTransfer::55"
+        );
         assertApproxEqRel(moe.balanceOf(alice), 5.25e18 + 2.5e18, 1e14, "test_GetPendingRewardSwapAndTransfer::56");
 
         assertEq(lbHooksExtra.getPendingRewards(alice, ids), 0, "test_GetPendingRewardSwapAndTransfer::57");
@@ -282,26 +294,66 @@ contract LBHooksExtraRewarderTest is TestHelper {
         _removeLiquidity(pair01, bob, DEFAULT_ID, 0, uint256(2e18) / 3);
 
         assertApproxEqRel(lbHooks.getPendingRewards(alice, ids), 5e18, 1e14, "test_GetPendingRewardMintAndBurn::9");
-        assertEq(lbHooks.getPendingRewards(bob, ids), 0, "test_GetPendingRewardMintAndBurn::10");
-        assertApproxEqRel(moe.balanceOf(bob), 4e18, 1e14, "test_GetPendingRewardMintAndBurn::11");
+        assertApproxEqRel(lbHooks.getPendingRewards(bob, ids), 4e18, 1e14, "test_GetPendingRewardMintAndBurn::10");
 
         assertApproxEqRel(
-            lbHooksExtra.getPendingRewards(alice, ids), 2e18, 1e14, "test_GetPendingRewardMintAndBurn::12"
+            lbHooksExtra.getPendingRewards(alice, ids), 2e18, 1e14, "test_GetPendingRewardMintAndBurn::11"
         );
-        assertEq(lbHooksExtra.getPendingRewards(bob, ids), 0, "test_GetPendingRewardMintAndBurn::13");
-        assertApproxEqRel(rewardToken01.balanceOf(bob), 6e18, 1e14, "test_GetPendingRewardMintAndBurn::14");
+        assertApproxEqRel(lbHooksExtra.getPendingRewards(bob, ids), 6e18, 1e14, "test_GetPendingRewardMintAndBurn::12");
+
+        assertEq(moe.balanceOf(bob), 0, "test_GetPendingRewardMintAndBurn::13");
+        assertEq(rewardToken01.balanceOf(bob), 0, "test_GetPendingRewardMintAndBurn::14");
         assertApproxEqRel(lbHooksExtra.getRemainingRewards(), 92e18, 1e14, "test_GetPendingRewardMintAndBurn::15");
 
         vm.warp(block.timestamp + 4);
 
         assertApproxEqRel(lbHooks.getPendingRewards(alice, ids), 8e18, 1e14, "test_GetPendingRewardMintAndBurn::16");
-        assertApproxEqRel(lbHooks.getPendingRewards(bob, ids), 1e18, 1e14, "test_GetPendingRewardMintAndBurn::17");
+        assertApproxEqRel(lbHooks.getPendingRewards(bob, ids), 5e18, 1e14, "test_GetPendingRewardMintAndBurn::17");
 
         assertApproxEqRel(
             lbHooksExtra.getPendingRewards(alice, ids), 4e18, 1e14, "test_GetPendingRewardMintAndBurn::18"
         );
-        assertApproxEqRel(lbHooksExtra.getPendingRewards(bob, ids), 2e18, 1e14, "test_GetPendingRewardMintAndBurn::19");
+        assertApproxEqRel(lbHooksExtra.getPendingRewards(bob, ids), 8e18, 1e14, "test_GetPendingRewardMintAndBurn::19");
+
         assertApproxEqRel(lbHooksExtra.getRemainingRewards(), 88e18, 1e14, "test_GetPendingRewardMintAndBurn::20");
+
+        vm.warp(block.timestamp + 87);
+
+        assertApproxEqRel(lbHooks.getPendingRewards(alice, ids), 73.25e18, 1e14, "test_GetPendingRewardMintAndBurn::21");
+        assertApproxEqRel(lbHooks.getPendingRewards(bob, ids), 26.75e18, 1e14, "test_GetPendingRewardMintAndBurn::22");
+
+        assertApproxEqRel(
+            lbHooksExtra.getPendingRewards(bob, ids), 51.5e18, 1e14, "test_GetPendingRewardMintAndBurn::23"
+        );
+        assertApproxEqRel(
+            lbHooksExtra.getPendingRewards(alice, ids), 47.5e18, 1e14, "test_GetPendingRewardMintAndBurn::24"
+        );
+        assertApproxEqRel(lbHooksExtra.getRemainingRewards(), 1e18, 1e14, "test_GetPendingRewardMintAndBurn::25");
+
+        vm.prank(alice);
+        lbHooks.claim(alice, ids);
+
+        vm.prank(bob);
+        lbHooks.claim(bob, ids);
+
+        assertApproxEqRel(rewardToken01.balanceOf(bob), 51.5e18, 1e14, "test_GetPendingRewardMintAndBurn::26");
+        assertApproxEqRel(rewardToken01.balanceOf(alice), 47.5e18, 1e14, "test_GetPendingRewardMintAndBurn::27");
+
+        vm.warp(block.timestamp + 1);
+
+        vm.prank(alice);
+        lbHooks.claim(alice, ids);
+
+        assertApproxEqRel(rewardToken01.balanceOf(bob), 51.5e18, 1e14, "test_GetPendingRewardMintAndBurn::28");
+        assertApproxEqRel(rewardToken01.balanceOf(alice), 47.5e18, 1e14, "test_GetPendingRewardMintAndBurn::29");
+
+        vm.warp(block.timestamp + 1);
+
+        vm.prank(alice);
+        lbHooks.claim(alice, ids);
+
+        assertApproxEqRel(rewardToken01.balanceOf(bob), 51.5e18, 1e14, "test_GetPendingRewardMintAndBurn::30");
+        assertApproxEqRel(rewardToken01.balanceOf(alice), 47.5e18, 1e14, "test_GetPendingRewardMintAndBurn::31");
     }
 
     function test_RemoveExtraRewarder() public {

@@ -105,15 +105,25 @@ contract LBHooksRewarderTest is TestHelper {
         assertApproxEqRel(
             lbHooks.getPendingRewards(alice, ids), 3.5e18, 1e14, "test_GetPendingRewardSwapAndTransfer::18"
         );
-        assertEq(lbHooks.getPendingRewards(bob, ids), 0, "test_GetPendingRewardSwapAndTransfer::19");
-        assertApproxEqRel(moe.balanceOf(bob), 7.5e18, 1e14, "test_GetPendingRewardSwapAndTransfer::20");
+        assertApproxEqRel(lbHooks.getPendingRewards(bob, ids), 7.5e18, 1e14, "test_GetPendingRewardSwapAndTransfer::19");
+        assertEq(moe.balanceOf(bob), 0, "test_GetPendingRewardSwapAndTransfer::20");
 
         vm.prank(alice);
         lbHooks.claim(alice, ids);
 
         assertEq(lbHooks.getPendingRewards(alice, ids), 0, "test_GetPendingRewardSwapAndTransfer::21");
-        assertEq(lbHooks.getPendingRewards(bob, ids), 0, "test_GetPendingRewardSwapAndTransfer::22");
+        assertApproxEqRel(lbHooks.getPendingRewards(bob, ids), 7.5e18, 1e14, "test_GetPendingRewardSwapAndTransfer::22");
         assertApproxEqRel(moe.balanceOf(alice), 3.5e18, 1e14, "test_GetPendingRewardSwapAndTransfer::23");
+
+        vm.warp(block.timestamp + 1);
+
+        assertApproxEqRel(lbHooks.getPendingRewards(alice, ids), 1e18, 1e14, "test_GetPendingRewardSwapAndTransfer::24");
+        assertApproxEqRel(lbHooks.getPendingRewards(bob, ids), 7.5e18, 1e14, "test_GetPendingRewardSwapAndTransfer::25");
+
+        MockERC20(address(moe)).mint(address(lbHooks), 1e18);
+
+        assertApproxEqRel(lbHooks.getPendingRewards(alice, ids), 2e18, 1e14, "test_GetPendingRewardSwapAndTransfer::26");
+        assertApproxEqRel(lbHooks.getPendingRewards(bob, ids), 7.5e18, 1e14, "test_GetPendingRewardSwapAndTransfer::27");
 
         vm.prank(address(lbHooksManager));
         factory.removeLBHooksOnPair(token0, token1, DEFAULT_BIN_STEP);

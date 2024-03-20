@@ -88,14 +88,14 @@ contract LBHooksBaseRewarderTest is TestHelper {
         pair01.batchTransferFrom(bob, alice, ids, new uint256[](ids.length));
 
         assertApproxEqRel(hooks.getPendingRewards(alice, ids), 3.5e18, 1e14, "test_GetPendingRewardSwapAndTransfer::18");
-        assertEq(hooks.getPendingRewards(bob, ids), 0, "test_GetPendingRewardSwapAndTransfer::19");
-        assertApproxEqRel(rewardToken01.balanceOf(bob), 7.5e18, 1e14, "test_GetPendingRewardSwapAndTransfer::20");
+        assertApproxEqRel(hooks.getPendingRewards(bob, ids), 7.5e18, 1e14, "test_GetPendingRewardSwapAndTransfer::19");
+        assertEq(rewardToken01.balanceOf(bob), 0, "test_GetPendingRewardSwapAndTransfer::20");
 
         vm.prank(alice);
         hooks.claim(alice, ids);
 
         assertEq(hooks.getPendingRewards(alice, ids), 0, "test_GetPendingRewardSwapAndTransfer::21");
-        assertEq(hooks.getPendingRewards(bob, ids), 0, "test_GetPendingRewardSwapAndTransfer::22");
+        assertApproxEqRel(hooks.getPendingRewards(bob, ids), 7.5e18, 1e14, "test_GetPendingRewardSwapAndTransfer::22");
         assertApproxEqRel(rewardToken01.balanceOf(alice), 3.5e18, 1e14, "test_GetPendingRewardSwapAndTransfer::23");
 
         factory.removeLBHooksOnPair(token0, token1, DEFAULT_BIN_STEP);
@@ -129,14 +129,13 @@ contract LBHooksBaseRewarderTest is TestHelper {
         _removeLiquidity(pair01, bob, DEFAULT_ID, 1, uint256(2e18) / 3);
 
         assertApproxEqRel(hooks.getPendingRewards(alice, ids), 3e18, 1e14, "test_GetPendingRewardMintAndBurn::6");
-        assertEq(hooks.getPendingRewards(bob, ids), 0, "test_GetPendingRewardMintAndBurn::7");
-        assertApproxEqRel(rewardToken01.balanceOf(bob), 6e18, 1e14, "test_GetPendingRewardMintAndBurn::8");
+        assertApproxEqRel(hooks.getPendingRewards(bob, ids), 6e18, 1e14, "test_GetPendingRewardMintAndBurn::7");
+        assertEq(rewardToken01.balanceOf(bob), 0, "test_GetPendingRewardMintAndBurn::8");
 
         vm.warp(block.timestamp + 4);
 
         assertApproxEqRel(hooks.getPendingRewards(alice, ids), 5e18, 1e14, "test_GetPendingRewardMintAndBurn::9");
-        assertApproxEqRel(hooks.getPendingRewards(bob, ids), 2e18, 1e14, "test_GetPendingRewardMintAndBurn::10");
-        assertApproxEqRel(rewardToken01.balanceOf(bob), 6e18, 1e14, "test_GetPendingRewardMintAndBurn::11");
+        assertApproxEqRel(hooks.getPendingRewards(bob, ids), 8e18, 1e14, "test_GetPendingRewardMintAndBurn::10");
 
         uint256[] memory edgeIds = new uint256[](4);
 
@@ -145,11 +144,13 @@ contract LBHooksBaseRewarderTest is TestHelper {
         edgeIds[2] = DEFAULT_ID + 200;
         edgeIds[3] = DEFAULT_ID + 201;
 
-        assertEq(hooks.getPendingRewards(bob, edgeIds), 0, "test_GetPendingRewardMintAndBurn::12");
+        // 6e18 is from the cached reward
+        assertApproxEqRel(hooks.getPendingRewards(bob, edgeIds), 6e18, 1e14, "test_GetPendingRewardMintAndBurn::11");
 
         hooks.setDeltaBins(-200, -200 + 1);
 
-        assertEq(hooks.getPendingRewards(bob, edgeIds), 0, "test_GetPendingRewardMintAndBurn::13");
+        // 6e18 is from the cached reward
+        assertApproxEqRel(hooks.getPendingRewards(bob, edgeIds), 6e18, 1e14, "test_GetPendingRewardMintAndBurn::12");
 
         vm.warp(block.timestamp + 4);
 
@@ -160,8 +161,8 @@ contract LBHooksBaseRewarderTest is TestHelper {
         vm.prank(bob);
         hooks.claim(bob, ids);
 
-        assertEq(hooks.getPendingRewards(bob, ids), 0, "test_GetPendingRewardMintAndBurn::14");
-        assertApproxEqRel(rewardToken01.balanceOf(bob), 8e18, 1e14, "test_GetPendingRewardMintAndBurn::15");
+        assertEq(hooks.getPendingRewards(bob, ids), 0, "test_GetPendingRewardMintAndBurn::13");
+        assertApproxEqRel(rewardToken01.balanceOf(bob), 8e18, 1e14, "test_GetPendingRewardMintAndBurn::14");
 
         vm.warp(block.timestamp + 4);
 
@@ -170,12 +171,12 @@ contract LBHooksBaseRewarderTest is TestHelper {
 
         ids.push(DEFAULT_ID - 200);
 
-        assertApproxEqRel(hooks.getPendingRewards(alice, ids), 5e18, 1e14, "test_GetPendingRewardMintAndBurn::16");
-        assertEq(hooks.getPendingRewards(bob, ids), 0, "test_GetPendingRewardMintAndBurn::17");
+        assertApproxEqRel(hooks.getPendingRewards(alice, ids), 5e18, 1e14, "test_GetPendingRewardMintAndBurn::15");
+        assertEq(hooks.getPendingRewards(bob, ids), 0, "test_GetPendingRewardMintAndBurn::16");
 
         factory.removeLBHooksOnPair(token0, token1, DEFAULT_BIN_STEP);
 
-        assertEq(hooks.getPendingRewards(bob, ids), 0, "test_GetPendingRewardMintAndBurn::18");
+        assertEq(hooks.getPendingRewards(alice, ids), 0, "test_GetPendingRewardMintAndBurn::17");
     }
 
     function test_SendNative(bytes memory data) public {
