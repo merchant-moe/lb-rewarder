@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {LBHooksBaseRewarder, Hooks} from "./LBHooksBaseRewarder.sol";
 import {ILBHooksExtraRewarder} from "./interfaces/ILBHooksExtraRewarder.sol";
 import {ILBHooksRewarder} from "./interfaces/ILBHooksRewarder.sol";
@@ -172,6 +171,8 @@ contract LBHooksExtraRewarder is LBHooksBaseRewarder, ILBHooksExtraRewarder {
 
         if (block.timestamp > lastUpdateTimestamp) {
             uint256 endTimestamp = _endTimestamp;
+
+            if (endTimestamp <= lastUpdateTimestamp) return 0;
 
             uint256 deltaTimestamp = block.timestamp < endTimestamp
                 ? block.timestamp - lastUpdateTimestamp
