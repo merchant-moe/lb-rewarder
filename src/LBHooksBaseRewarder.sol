@@ -219,8 +219,9 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
     }
 
     /**
-     * @dev Internal function to return whether the rewarder is linked
-     * @return Whether the rewarder is linked
+     * @dev Internal function to return whether caller is the msg.sender
+     * @param user The address of the user
+     * @return Whether the caller is the msg.sender
      */
     function _isAuthorizedCaller(address user) internal view virtual returns (bool) {
         return user == msg.sender;
