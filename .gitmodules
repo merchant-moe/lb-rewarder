@@ -3,11 +3,9 @@
 	url = https://github.com/foundry-rs/forge-std
 [submodule "lib/moe-core"]
 	path = lib/moe-core
-	branch = v2.2-support
 	url = https://github.com/traderjoe-xyz/moe-core
 [submodule "lib/dexv2"]
 	path = lib/dexv2
-	branch = v2.2
 	url = https://github.com/traderjoe-xyz/dexv2
 [submodule "lib/openzeppelin-contracts"]
 	path = lib/openzeppelin-contracts
