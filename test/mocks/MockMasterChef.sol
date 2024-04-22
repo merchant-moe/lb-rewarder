@@ -50,6 +50,10 @@ contract MockMasterChef {
         }
     }
 
+    function getMoePerSecondForPid(uint256) external view returns (uint256) {
+        return 1e18;
+    }
+
     function _claimRewards() internal {
         uint256 lastUpdate_ = lastUpdate;
         lastUpdate = block.timestamp;

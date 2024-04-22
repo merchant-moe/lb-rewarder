@@ -3,6 +3,7 @@ pragma solidity ^0.8.20;
 
 import {ILBPair} from "@lb-protocol/src/interfaces/ILBPair.sol";
 import {Hooks, ILBHooks} from "@lb-protocol/src/libraries/Hooks.sol";
+import {IMasterChef} from "@moe-core/src/interfaces/IMasterChef.sol";
 
 import {ILBHooksManager} from "./interfaces/ILBHooksManager.sol";
 import {ILBHooksRewarder} from "./interfaces/ILBHooksRewarder.sol";
@@ -15,6 +16,7 @@ contract LBHooksLens {
         ILBHooksManager.LBHooksType hooksType;
         address rewardToken;
         uint256 pid;
+        uint256 moePerSecond;
         uint256 activeId;
         uint256 rangeStart;
         uint256 rangeEnd;
@@ -38,9 +40,11 @@ contract LBHooksLens {
     }
 
     ILBHooksManager internal immutable _lbHooksManager;
+    IMasterChef internal immutable _masterChef;
 
-    constructor(address lbHooksManager) {
+    constructor(address lbHooksManager, address masterChef) {
         _lbHooksManager = ILBHooksManager(lbHooksManager);
+        _masterChef = IMasterChef(masterChef);
     }
 
     function getHooks(address pair) public view returns (Hooks.Parameters memory) {
@@ -138,15 +142,11 @@ contract LBHooksLens {
     }
 
     function getLBHooksType(address rewarder) public view returns (ILBHooksManager.LBHooksType) {
-        if (msg.sender == address(this)) {
-            return _lbHooksManager.getLBHooksType(ILBHooks(rewarder));
-        } else {
-            try this.getLBHooksType(rewarder) returns (ILBHooksManager.LBHooksType lbHooksType) {
-                return lbHooksType;
-            } catch {
-                return ILBHooksManager.LBHooksType.Invalid;
-            }
-        }
+        return _lbHooksManager.getLBHooksType(ILBHooks(rewarder));
+    }
+
+    function getMoePerSecond(uint256 pid) public view returns (uint256) {
+        return _masterChef.getMoePerSecondForPid(pid);
     }
 
     function getRewarderParameter(address extraRewarder) public view returns (uint256, uint256, uint256) {
@@ -188,6 +188,7 @@ contract LBHooksLens {
             rewarderData.hooksType = getLBHooksType(hooks);
             rewarderData.rewardToken = getRewardToken(hooks);
             rewarderData.pid = getPid(hooks);
+            rewarderData.moePerSecond = getMoePerSecond(rewarderData.pid);
             rewarderData.activeId = getActiveId(pair);
             (rewarderData.rangeStart, rewarderData.rangeEnd) = getRewardedRange(hooks);
 
