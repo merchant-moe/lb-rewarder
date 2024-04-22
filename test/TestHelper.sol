@@ -57,13 +57,13 @@ abstract contract TestHelper is Test {
 
         factory = new LBFactory(feeRecipient, address(this), 1e16);
 
-        token0 = IERC20(address(new MockERC20()));
-        token1 = IERC20(address(new MockERC20()));
-        token2 = IERC20(address(new MockERC20()));
+        token0 = IERC20(address(new MockERC20("MockERC20 0", "T0")));
+        token1 = IERC20(address(new MockERC20("MockERC20 1", "T1")));
+        token2 = IERC20(address(new MockERC20("MockERC20 2", "T2")));
 
-        rewardToken01 = IERC20(address(new MockERC20()));
-        rewardToken02 = IERC20(address(new MockERC20()));
-        rewardToken12 = IERC20(address(new MockERC20()));
+        rewardToken01 = IERC20(address(new MockERC20("Reward Token 01", "RT01")));
+        rewardToken02 = IERC20(address(new MockERC20("Reward Token 02", "RT02")));
+        rewardToken12 = IERC20(address(new MockERC20("Reward Token 12", "RT12")));
 
         address lbPairImplementation = address(new LBPair(factory));
 
@@ -94,7 +94,7 @@ abstract contract TestHelper is Test {
             })
         );
 
-        moe = IERC20(address(new MockERC20()));
+        moe = IERC20(address(new MockERC20("Moe", "MOE")));
         masterchef = IMasterChef(address(new MockMasterChef(moe)));
 
         address lbHooksManagerImplementation = address(new LBHooksManager(factory, IMasterChef(address(masterchef))));
