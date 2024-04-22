@@ -38,7 +38,7 @@ contract LBHooksRewarderTest is TestHelper {
         assertEq(address(lbHooks.getLBPair()), address(pair01), "test_Getters::4");
         assertEq(lbHooks.getPid(), masterchef.getNumberOfFarms() - 1, "test_Getters::5");
         assertEq(lbHooks.getPendingRewards(address(this), ids), 0, "test_Getters::6");
-        assertEq(keccak256(bytes(lbHooks.symbol())), keccak256("Vote LB MockERC20-MockERC20:25"), "test_Getters::7");
+        assertEq(keccak256(bytes(lbHooks.symbol())), keccak256("Vote LB T0-T1:25"), "test_Getters::7");
         assertEq(keccak256(bytes(lbHooks.name())), keccak256("LB Hooks Moe Rewarder"), "test_Getters::8");
     }
 

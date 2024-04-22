@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {ILBPair} from "@lb-protocol/src/interfaces/ILBPair.sol";
 import {Hooks, ILBHooks} from "@lb-protocol/src/libraries/Hooks.sol";
 import {IMasterChef} from "@moe-core/src/interfaces/IMasterChef.sol";
@@ -14,7 +15,7 @@ contract LBHooksLens {
     struct HooksRewarderData {
         Hooks.Parameters hooksParameters;
         ILBHooksManager.LBHooksType hooksType;
-        address rewardToken;
+        Token rewardToken;
         uint256 pid;
         uint256 moePerSecond;
         uint256 activeId;
@@ -26,7 +27,7 @@ contract LBHooksLens {
     struct ExtraHooksRewarderData {
         Hooks.Parameters hooksParameters;
         ILBHooksManager.LBHooksType hooksType;
-        address rewardToken;
+        Token rewardToken;
         uint256 rewardPerSecond;
         uint256 lastUpdateTimestamp;
         uint256 endTimestamp;
@@ -37,6 +38,12 @@ contract LBHooksLens {
         uint256 pendingRewards;
         bool isStarted;
         bool isEnded;
+    }
+
+    struct Token {
+        address token;
+        uint256 decimals;
+        string symbol;
     }
 
     ILBHooksManager internal immutable _lbHooksManager;
@@ -77,14 +84,24 @@ contract LBHooksLens {
         }
     }
 
-    function getRewardToken(address rewarder) public view returns (address) {
+    function getRewardToken(address rewarder) public view returns (Token memory rewardToken) {
         if (msg.sender == address(this)) {
-            return address(ILBHooksRewarder(rewarder).getRewardToken());
+            address token = address(ILBHooksRewarder(rewarder).getRewardToken());
+
+            rewardToken.token = token;
+
+            if (token != address(0)) {
+                rewardToken.decimals = IERC20Metadata(token).decimals();
+                rewardToken.symbol = IERC20Metadata(token).symbol();
+            } else {
+                rewardToken.decimals = 18;
+                rewardToken.symbol = "MNT";
+            }
         } else {
-            try this.getRewardToken(rewarder) returns (address rewardToken) {
-                return rewardToken;
+            try this.getRewardToken(rewarder) returns (Token memory r) {
+                return r;
             } catch {
-                return address(0);
+                return Token(address(0), 0, "");
             }
         }
     }
