@@ -29,8 +29,8 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
 
     int256 internal constant MAX_NUMBER_OF_BINS = 11;
     uint8 internal constant OFFSET_PRECISION = 128;
-    bytes32 internal constant FLAGS = Hooks.BEFORE_SWAP_FLAG | Hooks.BEFORE_MINT_FLAG | Hooks.AFTER_MINT_FLAG
-        | Hooks.BEFORE_BURN_FLAG | Hooks.AFTER_BURN_FLAG | Hooks.BEFORE_TRANSFER_FLAG | Hooks.AFTER_TRANSFER_FLAG;
+    bytes32 internal constant FLAGS =
+        Hooks.BEFORE_SWAP_FLAG | Hooks.BEFORE_MINT_FLAG | Hooks.BEFORE_BURN_FLAG | Hooks.BEFORE_TRANSFER_FLAG;
 
     address internal immutable _lbHooksManager;
 

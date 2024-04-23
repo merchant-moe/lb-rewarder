@@ -86,11 +86,11 @@ abstract contract TestHelper is Test {
                 beforeFlashLoan: false,
                 afterFlashLoan: false,
                 beforeMint: true,
-                afterMint: true,
+                afterMint: false,
                 beforeBurn: true,
-                afterBurn: true,
+                afterBurn: false,
                 beforeBatchTransferFrom: true,
-                afterBatchTransferFrom: true
+                afterBatchTransferFrom: false
             })
         );
 
