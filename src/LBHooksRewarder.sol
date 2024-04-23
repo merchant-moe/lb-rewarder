@@ -202,24 +202,6 @@ contract LBHooksRewarder is LBHooksBaseRewarder, ERC20Upgradeable, ILBHooksRewar
     }
 
     /**
-     * @dev Override the internal function that is called after a mint on the LB pair
-     * Will call the extra rewarder's afterMint function if the extra rewarder is set
-     * @param from The address of the sender
-     * @param to The address of the receiver
-     * @param liquidityConfigs The liquidity configs
-     * @param amountsIn The amounts in
-     */
-    function _afterMint(address from, address to, bytes32[] calldata liquidityConfigs, bytes32 amountsIn)
-        internal
-        virtual
-        override
-    {
-        super._afterMint(from, to, liquidityConfigs, amountsIn);
-
-        Hooks.afterMint(_extraHooksParameters, from, to, liquidityConfigs, amountsIn);
-    }
-
-    /**
      * @dev Override the internal function that is called before a burn on the LB pair
      * Will call the extra rewarder's beforeBurn function if the extra rewarder is set
      * @param sender The address of the sender
@@ -241,27 +223,6 @@ contract LBHooksRewarder is LBHooksBaseRewarder, ERC20Upgradeable, ILBHooksRewar
     }
 
     /**
-     * @dev Override the internal function that is called after a burn on the LB pair
-     * Will call the extra rewarder's afterBurn function if the extra rewarder is set
-     * @param sender The address of the sender
-     * @param from The address of the sender
-     * @param to The address of the receiver
-     * @param ids The ids of the LP tokens
-     * @param amountsToBurn The amounts to burn
-     */
-    function _afterBurn(
-        address sender,
-        address from,
-        address to,
-        uint256[] calldata ids,
-        uint256[] calldata amountsToBurn
-    ) internal virtual override {
-        super._afterBurn(sender, from, to, ids, amountsToBurn);
-
-        Hooks.afterBurn(_extraHooksParameters, sender, from, to, ids, amountsToBurn);
-    }
-
-    /**
      * @dev Override the internal function that is called before a transfer on the LB pair
      * Will call the extra rewarder's beforeBatchTransferFrom function if the extra rewarder is set
      * @param sender The address of the sender
@@ -280,26 +241,5 @@ contract LBHooksRewarder is LBHooksBaseRewarder, ERC20Upgradeable, ILBHooksRewar
         super._beforeBatchTransferFrom(sender, from, to, ids, amounts);
 
         Hooks.beforeBatchTransferFrom(_extraHooksParameters, sender, from, to, ids, amounts);
-    }
-
-    /**
-     * @dev Override the internal function that is called after a transfer on the LB pair
-     * Will call the extra rewarder's afterBatchTransferFrom function if the extra rewarder is set
-     * @param sender The address of the sender
-     * @param from The address of the sender
-     * @param to The address of the receiver
-     * @param ids The list of ids
-     * @param amounts The list of amounts
-     */
-    function _afterBatchTransferFrom(
-        address sender,
-        address from,
-        address to,
-        uint256[] calldata ids,
-        uint256[] calldata amounts
-    ) internal virtual override {
-        super._afterBatchTransferFrom(sender, from, to, ids, amounts);
-
-        Hooks.afterBatchTransferFrom(_extraHooksParameters, sender, from, to, ids, amounts);
     }
 }
