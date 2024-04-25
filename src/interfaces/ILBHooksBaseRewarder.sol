@@ -22,6 +22,7 @@ interface ILBHooksBaseRewarder is ILBHooks {
     error LBHooksBaseRewarder__ExceedsMaxNumberOfBins();
 
     event DeltaBinsSet(int24 deltaBinA, int24 deltaBinB);
+    event Claim(address indexed user, uint256 amount);
 
     struct Bin {
         uint256 accRewardsPerShareX64;

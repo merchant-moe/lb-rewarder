@@ -398,6 +398,8 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
         _totalUnclaimedRewards -= rewards;
         _unclaimedRewards[user] -= rewards;
 
+        emit Claim(user, rewards);
+
         _onClaim(user, ids);
 
         TokenHelper.safeTransfer(_getRewardToken(), user, rewards);
