@@ -4,7 +4,7 @@ pragma solidity ^0.8.20;
 
 import "./TestHelper.sol";
 
-import "../src/LBHooksBaseRewarder.sol";
+import {ILBHooksBaseRewarder, LBHooksBaseRewarder} from "../src/LBHooksBaseRewarder.sol";
 import "../src/LBHooksRewarder.sol";
 import "../src/LBHooksExtraRewarder.sol";
 import "../src/LBHooksLens.sol";
