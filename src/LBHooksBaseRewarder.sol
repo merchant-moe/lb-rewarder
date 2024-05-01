@@ -4,7 +4,7 @@ pragma solidity ^0.8.20;
 import {
     Ownable2StepUpgradeable,
     OwnableUpgradeable
-} from "@openzeppelin/contracts-upgradeable//access/Ownable2StepUpgradeable.sol";
+} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import {LBBaseHooks} from "@lb-protocol/src/LBBaseHooks.sol";
 import {Uint256x256Math} from "@lb-protocol/src/libraries/math/Uint256x256Math.sol";
 import {Clone} from "@lb-protocol/src/libraries/Clone.sol";
@@ -381,9 +381,7 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
             }
         }
 
-        if (pendingRewards > 0) {
-            _unclaimedRewards[to] += pendingRewards;
-        }
+        if (pendingRewards > 0) _unclaimedRewards[to] += pendingRewards;
     }
 
     /**

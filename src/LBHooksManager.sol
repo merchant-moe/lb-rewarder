@@ -5,7 +5,7 @@ pragma solidity ^0.8.20;
 import {
     Ownable2StepUpgradeable,
     OwnableUpgradeable
-} from "@openzeppelin/contracts-upgradeable//access/Ownable2StepUpgradeable.sol";
+} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ImmutableClone} from "@lb-protocol/src/libraries/ImmutableClone.sol";
 import {Hooks, ILBHooks} from "@lb-protocol/src/libraries/Hooks.sol";
@@ -212,7 +212,7 @@ contract LBHooksManager is Ownable2StepUpgradeable, ILBHooksManager {
 
         ILBHooks hooks = ILBHooks(
             ImmutableClone.cloneDeterministic(
-                implementation, immutableData, bytes32(uint256(uint8(lbHooksType)) << 248 | id)
+                implementation, immutableData, bytes32((uint256(uint8(lbHooksType)) << 248) | id)
             )
         );
 
