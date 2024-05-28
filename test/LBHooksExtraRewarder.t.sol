@@ -5,26 +5,26 @@ pragma solidity ^0.8.20;
 import "./TestHelper.sol";
 
 import {ILBHooksBaseRewarder, LBHooksBaseRewarder} from "../src/LBHooksBaseRewarder.sol";
-import "../src/LBHooksRewarder.sol";
+import "../src/LBHooksMCRewarder.sol";
 import "../src/LBHooksExtraRewarder.sol";
 
 contract LBHooksExtraRewarderTest is TestHelper {
-    LBHooksRewarder lbHooks;
+    LBHooksMCRewarder lbHooks;
     LBHooksExtraRewarder lbHooksExtra;
 
     function setUp() public override {
         super.setUp();
 
         lbHooksManager.setLBHooksParameters(
-            ILBHooksManager.LBHooksType.Rewarder,
-            Hooks.setHooks(hooksParameters, address(new LBHooksRewarder(address(lbHooksManager), masterchef, moe)))
+            ILBHooksManager.LBHooksType.MCRewarder,
+            Hooks.setHooks(hooksParameters, address(new LBHooksMCRewarder(address(lbHooksManager), masterchef, moe)))
         );
         lbHooksManager.setLBHooksParameters(
             ILBHooksManager.LBHooksType.ExtraRewarder,
             Hooks.setHooks(hooksParameters, address(new LBHooksExtraRewarder(address(lbHooksManager))))
         );
 
-        lbHooks = LBHooksRewarder(
+        lbHooks = LBHooksMCRewarder(
             payable(
                 address(
                     lbHooksManager.createLBHooksRewarder(
@@ -363,12 +363,12 @@ contract LBHooksExtraRewarderTest is TestHelper {
     function test_SetBadExtraRewarder() public {
         MockExtraHook extraHook = new MockExtraHook();
 
-        vm.expectRevert(ILBHooksRewarder.LBHooksRewarder__InvalidLBHooksExtraRewarder.selector);
+        vm.expectRevert(ILBHooksMCRewarder.LBHooksRewarder__InvalidLBHooksExtraRewarder.selector);
         lbHooks.setLBHooksExtraRewarder(ILBHooksExtraRewarder(address(extraHook)), new bytes(0));
 
         extraHook.setLBPair(address(pair01));
 
-        vm.expectRevert(ILBHooksRewarder.LBHooksRewarder__InvalidLBHooksExtraRewarder.selector);
+        vm.expectRevert(ILBHooksMCRewarder.LBHooksRewarder__InvalidLBHooksExtraRewarder.selector);
         lbHooks.setLBHooksExtraRewarder(ILBHooksExtraRewarder(address(extraHook)), new bytes(0));
     }
 
@@ -380,7 +380,7 @@ contract LBHooksExtraRewarderTest is TestHelper {
         extraHook.setLBPair(lbPair);
         extraHook.setParentRewarder(parentRewarder);
 
-        vm.expectRevert(ILBHooksRewarder.LBHooksRewarder__InvalidLBHooksExtraRewarder.selector);
+        vm.expectRevert(ILBHooksMCRewarder.LBHooksRewarder__InvalidLBHooksExtraRewarder.selector);
         lbHooks.setLBHooksExtraRewarder(ILBHooksExtraRewarder(address(extraHook)), new bytes(0));
     }
 

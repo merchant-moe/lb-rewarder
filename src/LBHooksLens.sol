@@ -7,7 +7,7 @@ import {Hooks, ILBHooks} from "@lb-protocol/src/libraries/Hooks.sol";
 import {IMasterChef} from "@moe-core/src/interfaces/IMasterChef.sol";
 
 import {ILBHooksManager} from "./interfaces/ILBHooksManager.sol";
-import {ILBHooksRewarder} from "./interfaces/ILBHooksRewarder.sol";
+import {ILBHooksMCRewarder} from "./interfaces/ILBHooksMCRewarder.sol";
 import {ILBHooksBaseRewarder} from "./interfaces/ILBHooksBaseRewarder.sol";
 import {ILBHooksExtraRewarder} from "./interfaces/ILBHooksExtraRewarder.sol";
 
@@ -71,7 +71,7 @@ contract LBHooksLens {
 
     function getExtraHooks(address rewarder) public view returns (Hooks.Parameters memory) {
         if (msg.sender == address(this)) {
-            bytes32 hooksParameters = ILBHooksRewarder(rewarder).getExtraHooksParameters();
+            bytes32 hooksParameters = ILBHooksMCRewarder(rewarder).getExtraHooksParameters();
 
             return Hooks.decode(hooksParameters);
         } else {
@@ -86,7 +86,7 @@ contract LBHooksLens {
 
     function getRewardToken(address rewarder) public view returns (Token memory rewardToken) {
         if (msg.sender == address(this)) {
-            address token = address(ILBHooksRewarder(rewarder).getRewardToken());
+            address token = address(ILBHooksMCRewarder(rewarder).getRewardToken());
 
             rewardToken.token = token;
 
@@ -108,7 +108,7 @@ contract LBHooksLens {
 
     function getPid(address rewarder) public view returns (uint256) {
         if (msg.sender == address(this)) {
-            return ILBHooksRewarder(rewarder).getPid();
+            return ILBHooksMCRewarder(rewarder).getPid();
         } else {
             try this.getPid(rewarder) returns (uint256 pid) {
                 return pid;
@@ -120,7 +120,7 @@ contract LBHooksLens {
 
     function getRewardedRange(address rewarder) public view returns (uint256, uint256) {
         if (msg.sender == address(this)) {
-            return ILBHooksRewarder(rewarder).getRewardedRange();
+            return ILBHooksMCRewarder(rewarder).getRewardedRange();
         } else {
             try this.getRewardedRange(rewarder) returns (uint256 rangeStart, uint256 rangeEnd) {
                 return (rangeStart, rangeEnd);

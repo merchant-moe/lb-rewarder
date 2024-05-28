@@ -3,7 +3,7 @@ pragma solidity ^0.8.20;
 
 import {LBHooksBaseRewarder, Hooks} from "./LBHooksBaseRewarder.sol";
 import {ILBHooksExtraRewarder} from "./interfaces/ILBHooksExtraRewarder.sol";
-import {ILBHooksRewarder} from "./interfaces/ILBHooksRewarder.sol";
+import {ILBHooksMCRewarder} from "./interfaces/ILBHooksMCRewarder.sol";
 
 import {TokenHelper} from "./library/TokenHelper.sol";
 
@@ -52,7 +52,7 @@ contract LBHooksExtraRewarder is LBHooksBaseRewarder, ILBHooksExtraRewarder {
      * @dev Returns the parent rewarder
      * @return parentRewarder The parent rewarder
      */
-    function getParentRewarder() external view virtual override returns (ILBHooksRewarder) {
+    function getParentRewarder() external view virtual override returns (ILBHooksMCRewarder) {
         return _getParentRewarder();
     }
 
@@ -96,8 +96,8 @@ contract LBHooksExtraRewarder is LBHooksBaseRewarder, ILBHooksExtraRewarder {
      * @dev Internal function to return the parent rewarder
      * @return parentRewarder The parent rewarder
      */
-    function _getParentRewarder() internal view virtual returns (ILBHooksRewarder) {
-        return ILBHooksRewarder(_getArgAddress(40));
+    function _getParentRewarder() internal view virtual returns (ILBHooksMCRewarder) {
+        return ILBHooksMCRewarder(_getArgAddress(40));
     }
 
     /**
@@ -150,7 +150,7 @@ contract LBHooksExtraRewarder is LBHooksBaseRewarder, ILBHooksExtraRewarder {
      * @return linked Whether the rewarder is linked
      */
     function _isLinked() internal view virtual override returns (bool linked) {
-        ILBHooksRewarder parentRewarder = _getParentRewarder();
+        ILBHooksMCRewarder parentRewarder = _getParentRewarder();
 
         return Hooks.getHooks(parentRewarder.getExtraHooksParameters()) == address(this) && parentRewarder.isLinked();
     }

@@ -4,7 +4,7 @@ pragma solidity ^0.8.20;
 
 import "./TestHelper.sol";
 
-import "../src/LBHooksRewarder.sol";
+import "../src/LBHooksMCRewarder.sol";
 import "../src/LBHooksExtraRewarder.sol";
 
 contract LBHooksManagerTest is TestHelper {
@@ -15,17 +15,17 @@ contract LBHooksManagerTest is TestHelper {
         super.setUp();
 
         rewarderHooksParameters =
-            Hooks.setHooks(hooksParameters, address(new LBHooksRewarder(address(lbHooksManager), masterchef, moe)));
+            Hooks.setHooks(hooksParameters, address(new LBHooksMCRewarder(address(lbHooksManager), masterchef, moe)));
         extraRewarderHooksParameters =
             Hooks.setHooks(hooksParameters, address(new LBHooksExtraRewarder(address(lbHooksManager))));
     }
 
     function test_GetLBHooksParameters() public {
-        lbHooksManager.setLBHooksParameters(ILBHooksManager.LBHooksType.Rewarder, rewarderHooksParameters);
+        lbHooksManager.setLBHooksParameters(ILBHooksManager.LBHooksType.MCRewarder, rewarderHooksParameters);
         lbHooksManager.setLBHooksParameters(ILBHooksManager.LBHooksType.ExtraRewarder, extraRewarderHooksParameters);
 
         assertEq(
-            lbHooksManager.getLBHooksParameters(ILBHooksManager.LBHooksType.Rewarder),
+            lbHooksManager.getLBHooksParameters(ILBHooksManager.LBHooksType.MCRewarder),
             rewarderHooksParameters,
             "test_GetLBHooksParameters::1"
         );
@@ -36,10 +36,10 @@ contract LBHooksManagerTest is TestHelper {
             "test_GetLBHooksParameters::2"
         );
 
-        lbHooksManager.setLBHooksParameters(ILBHooksManager.LBHooksType.Rewarder, bytes32(0));
+        lbHooksManager.setLBHooksParameters(ILBHooksManager.LBHooksType.MCRewarder, bytes32(0));
 
         assertEq(
-            lbHooksManager.getLBHooksParameters(ILBHooksManager.LBHooksType.Rewarder),
+            lbHooksManager.getLBHooksParameters(ILBHooksManager.LBHooksType.MCRewarder),
             bytes32(0),
             "test_GetLBHooksParameters::3"
         );
@@ -90,13 +90,13 @@ contract LBHooksManagerTest is TestHelper {
             IERC20(address(token0)), IERC20(address(token1)), DEFAULT_BIN_STEP, address(this)
         );
 
-        lbHooksManager.setLBHooksParameters(ILBHooksManager.LBHooksType.Rewarder, rewarderHooksParameters);
+        lbHooksManager.setLBHooksParameters(ILBHooksManager.LBHooksType.MCRewarder, rewarderHooksParameters);
 
         assertEq(
-            lbHooksManager.getHooksLength(ILBHooksManager.LBHooksType.Rewarder), 0, "test_CreateLBHooksRewarder::1"
+            lbHooksManager.getHooksLength(ILBHooksManager.LBHooksType.MCRewarder), 0, "test_CreateLBHooksRewarder::1"
         );
 
-        LBHooksRewarder lbHooks = LBHooksRewarder(
+        LBHooksMCRewarder lbHooks = LBHooksMCRewarder(
             payable(
                 address(
                     lbHooksManager.createLBHooksRewarder(
@@ -107,16 +107,16 @@ contract LBHooksManagerTest is TestHelper {
         );
 
         assertEq(
-            lbHooksManager.getHooksLength(ILBHooksManager.LBHooksType.Rewarder), 1, "test_CreateLBHooksRewarder::2"
+            lbHooksManager.getHooksLength(ILBHooksManager.LBHooksType.MCRewarder), 1, "test_CreateLBHooksRewarder::2"
         );
         assertEq(
-            address(lbHooksManager.getHooksAt(ILBHooksManager.LBHooksType.Rewarder, 0)),
+            address(lbHooksManager.getHooksAt(ILBHooksManager.LBHooksType.MCRewarder, 0)),
             address(lbHooks),
             "test_CreateLBHooksRewarder::3"
         );
         assertEq(
             uint8(lbHooksManager.getLBHooksType(lbHooks)),
-            uint8(ILBHooksManager.LBHooksType.Rewarder),
+            uint8(ILBHooksManager.LBHooksType.MCRewarder),
             "test_CreateLBHooksRewarder::4"
         );
     }
@@ -137,7 +137,7 @@ contract LBHooksManagerTest is TestHelper {
             IERC20(address(token0)), IERC20(address(token1)), DEFAULT_BIN_STEP, IERC20(address(0)), address(this)
         );
 
-        lbHooksManager.setLBHooksParameters(ILBHooksManager.LBHooksType.Rewarder, rewarderHooksParameters);
+        lbHooksManager.setLBHooksParameters(ILBHooksManager.LBHooksType.MCRewarder, rewarderHooksParameters);
         lbHooksManager.setLBHooksParameters(ILBHooksManager.LBHooksType.ExtraRewarder, extraRewarderHooksParameters);
 
         vm.expectRevert(ILBHooksManager.LBHooksManager__LBHooksNotSetOnPair.selector);
