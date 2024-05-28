@@ -5,9 +5,8 @@ import {IERC20Metadata, IERC20} from "@openzeppelin/contracts/token/ERC20/extens
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {ERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import {IMasterChef, IMasterChefRewarder} from "@moe-core/src/interfaces/IMasterChef.sol";
-import {LBHooksBaseRewarder, Hooks} from "./LBHooksBaseRewarder.sol";
+import {LBHooksBaseParentRewarder, LBHooksBaseRewarder} from "./LBHooksBaseParentRewarder.sol";
 import {ILBHooksMCRewarder} from "./interfaces/ILBHooksMCRewarder.sol";
-import {ILBHooksExtraRewarder} from "./interfaces/ILBHooksExtraRewarder.sol";
 
 import {TokenHelper} from "./library/TokenHelper.sol";
 
@@ -18,11 +17,9 @@ import {TokenHelper} from "./library/TokenHelper.sol";
  * It can also have an extra rewarder to distribute a second token to the LPs
  * It will reward the LPs that are inside the range set in this contract
  */
-contract LBHooksMCRewarder is LBHooksBaseRewarder, ERC20Upgradeable, ILBHooksMCRewarder {
+contract LBHooksMCRewarder is LBHooksBaseParentRewarder, ERC20Upgradeable, ILBHooksMCRewarder {
     IMasterChef internal immutable _masterChef;
     IERC20 internal immutable _moe;
-
-    bytes32 internal _extraHooksParameters;
 
     /**
      * @dev Constructor of the contract
@@ -49,43 +46,6 @@ contract LBHooksMCRewarder is LBHooksBaseRewarder, ERC20Upgradeable, ILBHooksMCR
      */
     function getMasterChef() external view virtual override returns (IMasterChef masterChef) {
         return _masterChef;
-    }
-
-    /**
-     * @dev Returns the extra hooks parameters
-     * @return extraHooksParameters The extra hooks parameters
-     */
-    function getExtraHooksParameters() external view virtual override returns (bytes32 extraHooksParameters) {
-        return _extraHooksParameters;
-    }
-
-    /**
-     * @dev Sets the LB Hooks Extra Rewarder
-     * @param lbHooksExtraRewarder The address of the LB Hooks Extra Rewarder
-     * @param extraRewarderData The data to be used on the LB Hooks Extra Rewarder
-     */
-    function setLBHooksExtraRewarder(ILBHooksExtraRewarder lbHooksExtraRewarder, bytes calldata extraRewarderData)
-        external
-        virtual
-        override
-    {
-        if (msg.sender != _lbHooksManager) _checkOwner();
-
-        if (address(lbHooksExtraRewarder) != address(0)) {
-            bytes32 extraHooksParameters = Hooks.setHooks(FLAGS, address(lbHooksExtraRewarder));
-
-            _extraHooksParameters = extraHooksParameters;
-
-            if (lbHooksExtraRewarder.getLBPair() != _getLBPair() || lbHooksExtraRewarder.getParentRewarder() != this) {
-                revert LBHooksRewarder__InvalidLBHooksExtraRewarder();
-            }
-
-            Hooks.onHooksSet(extraHooksParameters, extraRewarderData);
-        } else {
-            _extraHooksParameters = 0;
-        }
-
-        emit LBHooksExtraRewarderSet(lbHooksExtraRewarder);
     }
 
     /**
@@ -156,90 +116,5 @@ contract LBHooksMCRewarder is LBHooksBaseRewarder, ERC20Upgradeable, ILBHooksMCR
         _approve(address(this), address(_masterChef), 1);
 
         _masterChef.deposit(_getPid(), 1);
-    }
-
-    /**
-     * @dev Override the internal function that is called when the rewards are claimed
-     * Will call the extra rewarder's claim function if the extra rewarder is set
-     * @param user The address of the user
-     * @param ids The ids of the LP tokens
-     */
-    function _onClaim(address user, uint256[] memory ids) internal virtual override {
-        bytes32 extraHooksParameters = _extraHooksParameters;
-        if (extraHooksParameters != 0) ILBHooksExtraRewarder(Hooks.getHooks(extraHooksParameters)).claim(user, ids);
-    }
-
-    /**
-     * @dev Override the internal function that is called before a swap on the LB pair
-     * Will call the extra rewarder's beforeSwap function if the extra rewarder is set
-     * @param sender The address of the sender
-     * @param to The address of the receiver
-     * @param swapForY Whether the swap is for token Y
-     * @param amountsIn The amounts in
-     */
-    function _beforeSwap(address sender, address to, bool swapForY, bytes32 amountsIn) internal virtual override {
-        super._beforeSwap(sender, to, swapForY, amountsIn);
-
-        Hooks.beforeSwap(_extraHooksParameters, sender, to, swapForY, amountsIn);
-    }
-
-    /**
-     * @dev Override the internal function that is called before a mint on the LB pair
-     * Will call the extra rewarder's beforeMint function if the extra rewarder is set
-     * @param from The address of the sender
-     * @param to The address of the receiver
-     * @param liquidityConfigs The liquidity configs
-     * @param amountsReceived The amounts received
-     */
-    function _beforeMint(address from, address to, bytes32[] calldata liquidityConfigs, bytes32 amountsReceived)
-        internal
-        virtual
-        override
-    {
-        super._beforeMint(from, to, liquidityConfigs, amountsReceived);
-
-        Hooks.beforeMint(_extraHooksParameters, from, to, liquidityConfigs, amountsReceived);
-    }
-
-    /**
-     * @dev Override the internal function that is called before a burn on the LB pair
-     * Will call the extra rewarder's beforeBurn function if the extra rewarder is set
-     * @param sender The address of the sender
-     * @param from The address of the sender
-     * @param to The address of the receiver
-     * @param ids The ids of the LP tokens
-     * @param amountsToBurn The amounts to burn
-     */
-    function _beforeBurn(
-        address sender,
-        address from,
-        address to,
-        uint256[] calldata ids,
-        uint256[] calldata amountsToBurn
-    ) internal virtual override {
-        super._beforeBurn(sender, from, to, ids, amountsToBurn);
-
-        Hooks.beforeBurn(_extraHooksParameters, sender, from, to, ids, amountsToBurn);
-    }
-
-    /**
-     * @dev Override the internal function that is called before a transfer on the LB pair
-     * Will call the extra rewarder's beforeBatchTransferFrom function if the extra rewarder is set
-     * @param sender The address of the sender
-     * @param from The address of the sender
-     * @param to The address of the receiver
-     * @param ids The list of ids
-     * @param amounts The list of amounts
-     */
-    function _beforeBatchTransferFrom(
-        address sender,
-        address from,
-        address to,
-        uint256[] calldata ids,
-        uint256[] calldata amounts
-    ) internal virtual override {
-        super._beforeBatchTransferFrom(sender, from, to, ids, amounts);
-
-        Hooks.beforeBatchTransferFrom(_extraHooksParameters, sender, from, to, ids, amounts);
     }
 }
