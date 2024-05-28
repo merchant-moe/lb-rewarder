@@ -50,7 +50,7 @@ contract MockMasterChef {
         }
     }
 
-    function getMoePerSecondForPid(uint256) external view returns (uint256) {
+    function getMoePerSecondForPid(uint256) external pure returns (uint256) {
         return 1e18;
     }
 
