@@ -13,7 +13,7 @@ import {ILBFactory} from "@lb-protocol/src/interfaces/ILBFactory.sol";
 import {ILBPair} from "@lb-protocol/src/interfaces/ILBPair.sol";
 import {IMasterChef} from "@moe-core/src/interfaces/IMasterChef.sol";
 import {IMasterChefRewarder} from "@moe-core/src/interfaces/IMasterChef.sol";
-import {ILBHooksRewarder} from "./interfaces/ILBHooksRewarder.sol";
+import {ILBHooksMCRewarder} from "./interfaces/ILBHooksMCRewarder.sol";
 import {ILBHooksExtraRewarder} from "./interfaces/ILBHooksExtraRewarder.sol";
 import {ILBHooksManager} from "./interfaces/ILBHooksManager.sol";
 
@@ -116,15 +116,16 @@ contract LBHooksManager is Ownable2StepUpgradeable, ILBHooksManager {
         external
         override
         onlyOwner
-        returns (ILBHooksRewarder rewarder)
+        returns (ILBHooksMCRewarder rewarder)
     {
         (ILBPair lbPair, bytes32 hooksParameters) =
-            _getLBPairAndHooksParameters(LBHooksType.Rewarder, tokenX, tokenY, binStep);
+            _getLBPairAndHooksParameters(LBHooksType.MCRewarder, tokenX, tokenY, binStep);
 
         uint256 pid = _masterChef.getNumberOfFarms();
         bytes memory immutableData = abi.encodePacked(lbPair, pid);
 
-        rewarder = ILBHooksRewarder(_cloneHooks(LBHooksType.Rewarder, Hooks.getHooks(hooksParameters), immutableData));
+        rewarder =
+            ILBHooksMCRewarder(_cloneHooks(LBHooksType.MCRewarder, Hooks.getHooks(hooksParameters), immutableData));
 
         _masterChef.add(IERC20(address(rewarder)), IMasterChefRewarder(address(0)));
 
@@ -168,7 +169,7 @@ contract LBHooksManager is Ownable2StepUpgradeable, ILBHooksManager {
             _cloneHooks(LBHooksType.ExtraRewarder, Hooks.getHooks(hooksParameters), immutableData)
         );
 
-        ILBHooksRewarder(lbHooksAddress).setLBHooksExtraRewarder(
+        ILBHooksMCRewarder(lbHooksAddress).setLBHooksExtraRewarder(
             ILBHooksExtraRewarder(address(extraRewarder)), abi.encode(initialOwner)
         );
     }

@@ -4,7 +4,7 @@ pragma solidity ^0.8.20;
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ILBHooks} from "@lb-protocol/src/interfaces/ILBHooks.sol";
 
-import {ILBHooksRewarder} from "./ILBHooksRewarder.sol";
+import {ILBHooksMCRewarder} from "./ILBHooksMCRewarder.sol";
 import {ILBHooksExtraRewarder} from "./ILBHooksExtraRewarder.sol";
 
 /**
@@ -20,7 +20,7 @@ interface ILBHooksManager {
 
     enum LBHooksType {
         Invalid,
-        Rewarder,
+        MCRewarder,
         ExtraRewarder
     }
 
@@ -40,7 +40,7 @@ interface ILBHooksManager {
 
     function createLBHooksRewarder(IERC20 tokenX, IERC20 tokenY, uint16 binStep, address initialOwner)
         external
-        returns (ILBHooksRewarder);
+        returns (ILBHooksMCRewarder);
 
     function createLBHooksExtraRewarder(
         IERC20 tokenX,

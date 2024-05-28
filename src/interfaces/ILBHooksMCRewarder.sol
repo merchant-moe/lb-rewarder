@@ -9,7 +9,7 @@ import {ILBHooksExtraRewarder} from "./ILBHooksExtraRewarder.sol";
  * @title LB Hooks Rewarder Interface
  * @dev Interface for the LB Hooks Rewarder
  */
-interface ILBHooksRewarder is ILBHooksBaseRewarder {
+interface ILBHooksMCRewarder is ILBHooksBaseRewarder {
     error LBHooksRewarder__InvalidLBHooksExtraRewarder();
 
     event LBHooksExtraRewarderSet(ILBHooksExtraRewarder lbHooksExtraRewarder);

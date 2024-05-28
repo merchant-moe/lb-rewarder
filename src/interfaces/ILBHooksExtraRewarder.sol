@@ -2,7 +2,7 @@
 pragma solidity ^0.8.20;
 
 import {ILBHooksBaseRewarder} from "./ILBHooksBaseRewarder.sol";
-import {ILBHooksRewarder} from "./ILBHooksRewarder.sol";
+import {ILBHooksMCRewarder} from "./ILBHooksMCRewarder.sol";
 
 /**
  * @title LB Hooks Extra Rewarder Interface
@@ -25,7 +25,7 @@ interface ILBHooksExtraRewarder is ILBHooksBaseRewarder {
         view
         returns (uint256 rewardPerSecond, uint256 lastUpdateTimestamp, uint256 endTimestamp);
 
-    function getParentRewarder() external view returns (ILBHooksRewarder);
+    function getParentRewarder() external view returns (ILBHooksMCRewarder);
 
     function setRewarderParameters(uint256 maxRewardPerSecond, uint256 startTimestamp, uint256 expectedDuration)
         external

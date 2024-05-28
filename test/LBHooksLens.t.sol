@@ -5,12 +5,12 @@ pragma solidity ^0.8.20;
 import "./TestHelper.sol";
 
 import {ILBHooksBaseRewarder, LBHooksBaseRewarder} from "../src/LBHooksBaseRewarder.sol";
-import "../src/LBHooksRewarder.sol";
+import "../src/LBHooksMCRewarder.sol";
 import "../src/LBHooksExtraRewarder.sol";
 import "../src/LBHooksLens.sol";
 
 contract LBHooksLensTest is TestHelper {
-    LBHooksRewarder lbHooks;
+    LBHooksMCRewarder lbHooks;
     LBHooksExtraRewarder lbHooksExtra;
     LBHooksLens lbHooksLens;
 
@@ -18,15 +18,15 @@ contract LBHooksLensTest is TestHelper {
         super.setUp();
 
         lbHooksManager.setLBHooksParameters(
-            ILBHooksManager.LBHooksType.Rewarder,
-            Hooks.setHooks(hooksParameters, address(new LBHooksRewarder(address(lbHooksManager), masterchef, moe)))
+            ILBHooksManager.LBHooksType.MCRewarder,
+            Hooks.setHooks(hooksParameters, address(new LBHooksMCRewarder(address(lbHooksManager), masterchef, moe)))
         );
         lbHooksManager.setLBHooksParameters(
             ILBHooksManager.LBHooksType.ExtraRewarder,
             Hooks.setHooks(hooksParameters, address(new LBHooksExtraRewarder(address(lbHooksManager))))
         );
 
-        lbHooks = LBHooksRewarder(
+        lbHooks = LBHooksMCRewarder(
             payable(
                 address(
                     lbHooksManager.createLBHooksRewarder(
@@ -79,7 +79,7 @@ contract LBHooksLensTest is TestHelper {
         );
         assertEq(
             uint8(rewarderData.hooksType),
-            uint8(ILBHooksManager.LBHooksType.Rewarder),
+            uint8(ILBHooksManager.LBHooksType.MCRewarder),
             "test_GetPendingRewardSwapAndTransfer::2"
         );
         assertEq(rewarderData.rewardToken.token, address(moe), "test_GetPendingRewardSwapAndTransfer::3");

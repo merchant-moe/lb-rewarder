@@ -4,21 +4,21 @@ pragma solidity ^0.8.20;
 
 import "./TestHelper.sol";
 
-import "../src/LBHooksRewarder.sol";
+import "../src/LBHooksMCRewarder.sol";
 import "../src/interfaces/ILBHooksBaseRewarder.sol";
 
 contract LBHooksRewarderTest is TestHelper {
-    LBHooksRewarder lbHooks;
+    LBHooksMCRewarder lbHooks;
 
     function setUp() public override {
         super.setUp();
 
         hooksParameters =
-            Hooks.setHooks(hooksParameters, address(new LBHooksRewarder(address(lbHooksManager), masterchef, moe)));
+            Hooks.setHooks(hooksParameters, address(new LBHooksMCRewarder(address(lbHooksManager), masterchef, moe)));
 
-        lbHooksManager.setLBHooksParameters(ILBHooksManager.LBHooksType.Rewarder, hooksParameters);
+        lbHooksManager.setLBHooksParameters(ILBHooksManager.LBHooksType.MCRewarder, hooksParameters);
 
-        lbHooks = LBHooksRewarder(
+        lbHooks = LBHooksMCRewarder(
             payable(
                 address(
                     lbHooksManager.createLBHooksRewarder(
