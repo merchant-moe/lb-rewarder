@@ -8,9 +8,8 @@ import {ILBHooksBaseParentRewarder} from "./interfaces/ILBHooksBaseParentRewarde
 import {ILBHooksExtraRewarder} from "./interfaces/ILBHooksExtraRewarder.sol";
 
 /**
- * @title LB Hooks Simple Rewarder
- * @dev This contract will be used as a second rewarder on top of the main rewarder to distribute a second token to the LPs
- * It will reward the LPs that are inside the range set in this contract
+ * @title LB Hooks Base Parent Rewarder
+ * @dev This contract allows to set a second rewarder that will be used to distribute a second token to the LPs
  */
 abstract contract LBHooksBaseParentRewarder is LBHooksBaseRewarder, ILBHooksBaseParentRewarder {
     bytes32 internal _extraHooksParameters;

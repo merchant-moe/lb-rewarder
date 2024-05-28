@@ -12,7 +12,8 @@ import {TokenHelper} from "./library/TokenHelper.sol";
 
 /**
  * @title LB Hooks Simple Rewarder
- * @dev This contract will be used as a second rewarder on top of the main rewarder to distribute a second token to the LPs
+ * @dev This contract allows to distribute rewards to LPs at a linear rate for a given duration
+ * It can also have an extra rewarder to distribute a second token to the LPs
  * It will reward the LPs that are inside the range set in this contract
  */
 contract LBHooksSimpleRewarder is LBHooksBaseSimpleRewarder, LBHooksBaseParentRewarder, ILBHooksSimpleRewarder {
