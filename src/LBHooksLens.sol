@@ -7,6 +7,7 @@ import {Hooks, ILBHooks} from "@lb-protocol/src/libraries/Hooks.sol";
 import {IMasterChef} from "@moe-core/src/interfaces/IMasterChef.sol";
 
 import {ILBHooksManager} from "./interfaces/ILBHooksManager.sol";
+import {ILBHooksBaseParentRewarder} from "./interfaces/ILBHooksBaseParentRewarder.sol";
 import {ILBHooksMCRewarder} from "./interfaces/ILBHooksMCRewarder.sol";
 import {ILBHooksBaseRewarder} from "./interfaces/ILBHooksBaseRewarder.sol";
 import {ILBHooksExtraRewarder} from "./interfaces/ILBHooksExtraRewarder.sol";
@@ -14,6 +15,11 @@ import {ILBHooksExtraRewarder} from "./interfaces/ILBHooksExtraRewarder.sol";
 contract LBHooksLens {
     struct HooksRewarderData {
         Hooks.Parameters hooksParameters;
+        Parameters parameters;
+        uint256 activeId;
+    }
+
+    struct Parameters {
         ILBHooksManager.LBHooksType hooksType;
         Token rewardToken;
         uint256 pid;
@@ -22,20 +28,10 @@ contract LBHooksLens {
         uint256 rangeStart;
         uint256 rangeEnd;
         uint256 pendingRewards;
-    }
-
-    struct ExtraHooksRewarderData {
-        Hooks.Parameters hooksParameters;
-        ILBHooksManager.LBHooksType hooksType;
-        Token rewardToken;
         uint256 rewardPerSecond;
         uint256 lastUpdateTimestamp;
         uint256 endTimestamp;
         uint256 remainingRewards;
-        uint256 activeId;
-        uint256 rangeStart;
-        uint256 rangeEnd;
-        uint256 pendingRewards;
         bool isStarted;
         bool isEnded;
     }
@@ -71,7 +67,7 @@ contract LBHooksLens {
 
     function getExtraHooks(address rewarder) public view returns (Hooks.Parameters memory) {
         if (msg.sender == address(this)) {
-            bytes32 hooksParameters = ILBHooksMCRewarder(rewarder).getExtraHooksParameters();
+            bytes32 hooksParameters = ILBHooksBaseParentRewarder(rewarder).getExtraHooksParameters();
 
             return Hooks.decode(hooksParameters);
         } else {
@@ -86,7 +82,7 @@ contract LBHooksLens {
 
     function getRewardToken(address rewarder) public view returns (Token memory rewardToken) {
         if (msg.sender == address(this)) {
-            address token = address(ILBHooksMCRewarder(rewarder).getRewardToken());
+            address token = address(ILBHooksBaseParentRewarder(rewarder).getRewardToken());
 
             rewardToken.token = token;
 
@@ -120,7 +116,7 @@ contract LBHooksLens {
 
     function getRewardedRange(address rewarder) public view returns (uint256, uint256) {
         if (msg.sender == address(this)) {
-            return ILBHooksMCRewarder(rewarder).getRewardedRange();
+            return ILBHooksBaseParentRewarder(rewarder).getRewardedRange();
         } else {
             try this.getRewardedRange(rewarder) returns (uint256 rangeStart, uint256 rangeEnd) {
                 return (rangeStart, rangeEnd);
@@ -192,55 +188,52 @@ contract LBHooksLens {
         }
     }
 
+    function getParametersOf(address hooks, address user, uint256[] calldata ids)
+        public
+        view
+        returns (Parameters memory parameters)
+    {
+        if (hooks != address(0)) {
+            parameters.hooksType = getLBHooksType(hooks);
+            parameters.rewardToken = getRewardToken(hooks);
+            (parameters.rangeStart, parameters.rangeEnd) = getRewardedRange(hooks);
+
+            if (parameters.hooksType == ILBHooksManager.LBHooksType.MCRewarder) {
+                parameters.pid = getPid(hooks);
+                parameters.moePerSecond = getMoePerSecond(parameters.pid);
+            } else {
+                (parameters.rewardPerSecond, parameters.lastUpdateTimestamp, parameters.endTimestamp) =
+                    getRewarderParameter(hooks);
+                parameters.remainingRewards = getRemainingRewards(hooks);
+                parameters.isStarted = block.timestamp >= parameters.lastUpdateTimestamp;
+                parameters.isEnded = block.timestamp >= parameters.endTimestamp;
+            }
+
+            if (user != address(0)) parameters.pendingRewards = getPendingRewards(hooks, user, ids);
+        }
+    }
+
     function getHooksData(address pair, address user, uint256[] calldata ids)
         public
         view
-        returns (HooksRewarderData memory rewarderData, ExtraHooksRewarderData memory extraRewarderData)
+        returns (HooksRewarderData memory rewarderData, HooksRewarderData memory extraRewarderData)
     {
         rewarderData.hooksParameters = getHooks(pair);
+        rewarderData.parameters = getParametersOf(rewarderData.hooksParameters.hooks, user, ids);
+        rewarderData.activeId = getActiveId(pair);
 
-        address hooks = rewarderData.hooksParameters.hooks;
-
-        if (hooks != address(0)) {
-            rewarderData.hooksType = getLBHooksType(hooks);
-            rewarderData.rewardToken = getRewardToken(hooks);
-            rewarderData.pid = getPid(hooks);
-            rewarderData.moePerSecond = getMoePerSecond(rewarderData.pid);
-            rewarderData.activeId = getActiveId(pair);
-            (rewarderData.rangeStart, rewarderData.rangeEnd) = getRewardedRange(hooks);
-
-            if (user != address(0)) rewarderData.pendingRewards = getPendingRewards(hooks, user, ids);
-
-            extraRewarderData.hooksParameters = getExtraHooks(hooks);
-
-            address extraHooks = extraRewarderData.hooksParameters.hooks;
-
-            if (extraHooks != address(0)) {
-                extraRewarderData.hooksType = getLBHooksType(extraHooks);
-                extraRewarderData.rewardToken = getRewardToken(extraHooks);
-                (
-                    extraRewarderData.rewardPerSecond,
-                    extraRewarderData.lastUpdateTimestamp,
-                    extraRewarderData.endTimestamp
-                ) = getRewarderParameter(extraHooks);
-                extraRewarderData.activeId = rewarderData.activeId;
-                (extraRewarderData.rangeStart, extraRewarderData.rangeEnd) = getRewardedRange(extraHooks);
-                extraRewarderData.remainingRewards = getRemainingRewards(extraHooks);
-                extraRewarderData.isStarted = block.timestamp >= extraRewarderData.lastUpdateTimestamp;
-                extraRewarderData.isEnded = block.timestamp >= extraRewarderData.endTimestamp;
-
-                if (user != address(0)) extraRewarderData.pendingRewards = getPendingRewards(extraHooks, user, ids);
-            }
-        }
+        extraRewarderData.hooksParameters = getExtraHooks(rewarderData.hooksParameters.hooks);
+        extraRewarderData.parameters = getParametersOf(extraRewarderData.hooksParameters.hooks, user, ids);
+        extraRewarderData.activeId = rewarderData.activeId;
     }
 
     function getBatchHooksData(address[] calldata pairs, address user, uint256[][] calldata ids)
         public
         view
-        returns (HooksRewarderData[] memory rewarderData, ExtraHooksRewarderData[] memory extraRewarderData)
+        returns (HooksRewarderData[] memory rewarderData, HooksRewarderData[] memory extraRewarderData)
     {
         rewarderData = new HooksRewarderData[](pairs.length);
-        extraRewarderData = new ExtraHooksRewarderData[](pairs.length);
+        extraRewarderData = new HooksRewarderData[](pairs.length);
 
         for (uint256 i = 0; i < pairs.length; i++) {
             (rewarderData[i], extraRewarderData[i]) = getHooksData(pairs[i], user, ids[i]);
