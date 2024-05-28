@@ -4,7 +4,8 @@ pragma solidity ^0.8.20;
 
 import "./TestHelper.sol";
 
-import {ILBHooksBaseRewarder, LBHooksBaseRewarder} from "../src/LBHooksBaseRewarder.sol";
+import "../src/LBHooksBaseRewarder.sol";
+import "../src/LBHooksBaseSimpleRewarder.sol";
 import "../src/LBHooksMCRewarder.sol";
 import "../src/LBHooksExtraRewarder.sol";
 
@@ -27,7 +28,7 @@ contract LBHooksExtraRewarderTest is TestHelper {
         lbHooks = LBHooksMCRewarder(
             payable(
                 address(
-                    lbHooksManager.createLBHooksRewarder(
+                    lbHooksManager.createLBHooksMCRewarder(
                         IERC20(address(token0)), IERC20(address(token1)), DEFAULT_BIN_STEP, address(this)
                     )
                 )
@@ -221,7 +222,7 @@ contract LBHooksExtraRewarderTest is TestHelper {
         vm.expectRevert(ILBHooksBaseRewarder.LBHooksBaseRewarder__UnauthorizedCaller.selector);
         lbHooksExtra.claim(address(this), ids);
 
-        lbHooks.setLBHooksExtraRewarder(ILBHooksExtraRewarder(address(0)), new bytes(0));
+        lbHooks.setLBHooksExtraRewarder(address(0), new bytes(0));
 
         assertFalse(lbHooksExtra.isLinked(), "test_GetPendingRewardSwapAndTransfer::49");
 
@@ -357,19 +358,19 @@ contract LBHooksExtraRewarderTest is TestHelper {
     }
 
     function test_RemoveExtraRewarder() public {
-        lbHooks.setLBHooksExtraRewarder(ILBHooksExtraRewarder(address(0)), new bytes(0));
+        lbHooks.setLBHooksExtraRewarder(address(0), new bytes(0));
     }
 
     function test_SetBadExtraRewarder() public {
         MockExtraHook extraHook = new MockExtraHook();
 
-        vm.expectRevert(ILBHooksMCRewarder.LBHooksRewarder__InvalidLBHooksExtraRewarder.selector);
-        lbHooks.setLBHooksExtraRewarder(ILBHooksExtraRewarder(address(extraHook)), new bytes(0));
+        vm.expectRevert(ILBHooksBaseParentRewarder.LBHooksRewarder__InvalidLBHooksExtraRewarder.selector);
+        lbHooks.setLBHooksExtraRewarder(address(extraHook), new bytes(0));
 
         extraHook.setLBPair(address(pair01));
 
-        vm.expectRevert(ILBHooksMCRewarder.LBHooksRewarder__InvalidLBHooksExtraRewarder.selector);
-        lbHooks.setLBHooksExtraRewarder(ILBHooksExtraRewarder(address(extraHook)), new bytes(0));
+        vm.expectRevert(ILBHooksBaseParentRewarder.LBHooksRewarder__InvalidLBHooksExtraRewarder.selector);
+        lbHooks.setLBHooksExtraRewarder(address(extraHook), new bytes(0));
     }
 
     function test_fuzz_SetBadExtraRewarder(address lbPair, address parentRewarder) public {
@@ -380,8 +381,8 @@ contract LBHooksExtraRewarderTest is TestHelper {
         extraHook.setLBPair(lbPair);
         extraHook.setParentRewarder(parentRewarder);
 
-        vm.expectRevert(ILBHooksMCRewarder.LBHooksRewarder__InvalidLBHooksExtraRewarder.selector);
-        lbHooks.setLBHooksExtraRewarder(ILBHooksExtraRewarder(address(extraHook)), new bytes(0));
+        vm.expectRevert(ILBHooksBaseParentRewarder.LBHooksRewarder__InvalidLBHooksExtraRewarder.selector);
+        lbHooks.setLBHooksExtraRewarder(address(extraHook), new bytes(0));
     }
 
     function test_fuzz_SetRewardsParameters(
@@ -391,7 +392,7 @@ contract LBHooksExtraRewarderTest is TestHelper {
     ) public {
         startTimestamp = bound(startTimestamp, 0, block.timestamp - 1);
 
-        vm.expectRevert(ILBHooksExtraRewarder.LBHooksExtraRewarder__InvalidStartTimestamp.selector);
+        vm.expectRevert(ILBHooksBaseSimpleRewarder.LBHooksBaseSimpleRewarder__InvalidStartTimestamp.selector);
         lbHooksExtra.setRewarderParameters(maxRewardPerSecond, startTimestamp, expectedDuration);
 
         startTimestamp = bound(startTimestamp, block.timestamp, type(uint256).max);
@@ -399,13 +400,13 @@ contract LBHooksExtraRewarderTest is TestHelper {
         expectedDuration = bound(expectedDuration, 1, type(uint256).max - startTimestamp);
         maxRewardPerSecond = bound(maxRewardPerSecond, 1, type(uint256).max / expectedDuration);
 
-        vm.expectRevert(ILBHooksExtraRewarder.LBHooksExtraRewarder__InvalidDuration.selector);
+        vm.expectRevert(ILBHooksBaseSimpleRewarder.LBHooksBaseSimpleRewarder__InvalidDuration.selector);
         lbHooksExtra.setRewarderParameters(maxRewardPerSecond, startTimestamp, 0);
 
-        vm.expectRevert(ILBHooksExtraRewarder.LBHooksExtraRewarder__InvalidDuration.selector);
+        vm.expectRevert(ILBHooksBaseSimpleRewarder.LBHooksBaseSimpleRewarder__InvalidDuration.selector);
         lbHooksExtra.setRewarderParameters(0, startTimestamp, expectedDuration);
 
-        vm.expectRevert(ILBHooksExtraRewarder.LBHooksExtraRewarder__ZeroReward.selector);
+        vm.expectRevert(ILBHooksBaseSimpleRewarder.LBHooksBaseSimpleRewarder__ZeroReward.selector);
         lbHooksExtra.setRewarderParameters(maxRewardPerSecond, startTimestamp, expectedDuration);
 
         MockERC20(address(rewardToken01)).mint(address(lbHooksExtra), maxRewardPerSecond * expectedDuration);
@@ -452,15 +453,15 @@ contract LBHooksExtraRewarderTest is TestHelper {
 
         assertFalse(lbHooksExtra.isLinked(), "test_fuzz_SetRewardsParameters::13");
 
-        vm.expectRevert(ILBHooksExtraRewarder.LBHooksExtraRewarder__Stopped.selector);
+        vm.expectRevert(ILBHooksBaseSimpleRewarder.LBHooksBaseSimpleRewarder__Stopped.selector);
         lbHooksExtra.setRewarderParameters(maxRewardPerSecond, startTimestamp, expectedDuration);
 
         vm.prank(address(lbHooksManager));
-        lbHooks.setLBHooksExtraRewarder(ILBHooksExtraRewarder(address(0)), new bytes(0));
+        lbHooks.setLBHooksExtraRewarder(address(0), new bytes(0));
 
         assertFalse(lbHooksExtra.isLinked(), "test_fuzz_SetRewardsParameters::14");
 
-        vm.expectRevert(ILBHooksExtraRewarder.LBHooksExtraRewarder__Stopped.selector);
+        vm.expectRevert(ILBHooksBaseSimpleRewarder.LBHooksBaseSimpleRewarder__Stopped.selector);
         lbHooksExtra.setRewarderParameters(maxRewardPerSecond, startTimestamp, expectedDuration);
     }
 }

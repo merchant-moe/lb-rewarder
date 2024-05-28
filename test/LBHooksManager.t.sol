@@ -74,32 +74,32 @@ contract LBHooksManagerTest is TestHelper {
         lbHooksManager.setLBHooksParameters(ILBHooksManager.LBHooksType.Invalid, bytes32(0));
     }
 
-    function test_CreateLBHooksRewarder() public {
+    function test_createLBHooksMCRewarder() public {
         vm.expectRevert(ILBHooksManager.LBHooksManager__LBPairNotFound.selector);
-        lbHooksManager.createLBHooksRewarder(
+        lbHooksManager.createLBHooksMCRewarder(
             IERC20(address(token0)), IERC20(address(token0)), DEFAULT_BIN_STEP, address(this)
         );
 
         vm.expectRevert(ILBHooksManager.LBHooksManager__UnorderedTokens.selector);
-        lbHooksManager.createLBHooksRewarder(
+        lbHooksManager.createLBHooksMCRewarder(
             IERC20(address(token1)), IERC20(address(token0)), DEFAULT_BIN_STEP, address(this)
         );
 
         vm.expectRevert(ILBHooksManager.LBHooksManager__LBHooksParametersNotSet.selector);
-        lbHooksManager.createLBHooksRewarder(
+        lbHooksManager.createLBHooksMCRewarder(
             IERC20(address(token0)), IERC20(address(token1)), DEFAULT_BIN_STEP, address(this)
         );
 
         lbHooksManager.setLBHooksParameters(ILBHooksManager.LBHooksType.MCRewarder, rewarderHooksParameters);
 
         assertEq(
-            lbHooksManager.getHooksLength(ILBHooksManager.LBHooksType.MCRewarder), 0, "test_CreateLBHooksRewarder::1"
+            lbHooksManager.getHooksLength(ILBHooksManager.LBHooksType.MCRewarder), 0, "test_createLBHooksMCRewarder::1"
         );
 
         LBHooksMCRewarder lbHooks = LBHooksMCRewarder(
             payable(
                 address(
-                    lbHooksManager.createLBHooksRewarder(
+                    lbHooksManager.createLBHooksMCRewarder(
                         IERC20(address(token0)), IERC20(address(token1)), DEFAULT_BIN_STEP, address(this)
                     )
                 )
@@ -107,17 +107,17 @@ contract LBHooksManagerTest is TestHelper {
         );
 
         assertEq(
-            lbHooksManager.getHooksLength(ILBHooksManager.LBHooksType.MCRewarder), 1, "test_CreateLBHooksRewarder::2"
+            lbHooksManager.getHooksLength(ILBHooksManager.LBHooksType.MCRewarder), 1, "test_createLBHooksMCRewarder::2"
         );
         assertEq(
             address(lbHooksManager.getHooksAt(ILBHooksManager.LBHooksType.MCRewarder, 0)),
             address(lbHooks),
-            "test_CreateLBHooksRewarder::3"
+            "test_createLBHooksMCRewarder::3"
         );
         assertEq(
             uint8(lbHooksManager.getLBHooksType(lbHooks)),
             uint8(ILBHooksManager.LBHooksType.MCRewarder),
-            "test_CreateLBHooksRewarder::4"
+            "test_createLBHooksMCRewarder::4"
         );
     }
 
@@ -145,7 +145,7 @@ contract LBHooksManagerTest is TestHelper {
             IERC20(address(token0)), IERC20(address(token1)), DEFAULT_BIN_STEP, IERC20(address(0)), address(this)
         );
 
-        lbHooksManager.createLBHooksRewarder(
+        lbHooksManager.createLBHooksMCRewarder(
             IERC20(address(token0)), IERC20(address(token1)), DEFAULT_BIN_STEP, address(this)
         );
 
@@ -155,8 +155,10 @@ contract LBHooksManagerTest is TestHelper {
             "test_CreateLBHooksExtraRewarder::1"
         );
 
-        ILBHooksExtraRewarder lbHooks = lbHooksManager.createLBHooksExtraRewarder(
-            IERC20(address(token0)), IERC20(address(token1)), DEFAULT_BIN_STEP, IERC20(address(0)), address(this)
+        ILBHooksExtraRewarder lbHooks = ILBHooksExtraRewarder(
+            lbHooksManager.createLBHooksExtraRewarder(
+                IERC20(address(token0)), IERC20(address(token1)), DEFAULT_BIN_STEP, IERC20(address(0)), address(this)
+            )
         );
 
         assertEq(
