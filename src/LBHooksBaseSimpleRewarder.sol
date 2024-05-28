@@ -7,8 +7,8 @@ import {ILBHooksBaseSimpleRewarder} from "./interfaces/ILBHooksBaseSimpleRewarde
 import {TokenHelper} from "./library/TokenHelper.sol";
 
 /**
- * @title LB Hooks Extra Rewarder
- * @dev This contract will be used as a second rewarder on top of the main rewarder to distribute a second token to the LPs
+ * @title LB Hooks Base Simple Rewarder
+ * @dev This contract allows to distribute rewards to LPs at a linear rate for a given duration
  * It will reward the LPs that are inside the range set in this contract
  */
 abstract contract LBHooksBaseSimpleRewarder is LBHooksBaseRewarder, ILBHooksBaseSimpleRewarder {

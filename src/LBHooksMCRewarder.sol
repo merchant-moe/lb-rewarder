@@ -11,7 +11,7 @@ import {ILBHooksMCRewarder} from "./interfaces/ILBHooksMCRewarder.sol";
 import {TokenHelper} from "./library/TokenHelper.sol";
 
 /**
- * @title LB Hooks Rewarder
+ * @title LB Hooks MasterChef Rewarder
  * @dev Main contract for the LB Hooks Rewarder
  * This contract will be used as a sink on the masterchef to receive MOE rewards and distribute them to the LPs
  * It can also have an extra rewarder to distribute a second token to the LPs
