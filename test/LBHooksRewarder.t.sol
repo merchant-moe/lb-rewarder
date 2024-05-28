@@ -21,7 +21,7 @@ contract LBHooksRewarderTest is TestHelper {
         lbHooks = LBHooksMCRewarder(
             payable(
                 address(
-                    lbHooksManager.createLBHooksRewarder(
+                    lbHooksManager.createLBHooksMCRewarder(
                         IERC20(address(token0)), IERC20(address(token1)), DEFAULT_BIN_STEP, address(this)
                     )
                 )
