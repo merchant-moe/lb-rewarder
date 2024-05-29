@@ -159,8 +159,6 @@ contract LBHooksManager is Ownable2StepUpgradeable, ILBHooksManager {
 
         address lbHooksAddress = Hooks.getHooks(lbPair.getLBHooksParameters());
 
-        if (lbHooksAddress == address(0)) revert LBHooksManager__LBHooksNotSetOnPair();
-
         bytes memory immutableData = abi.encodePacked(lbPair, rewardToken, lbHooksAddress);
 
         rewarder = _cloneHooks(LBHooksType.SimpleRewarder, Hooks.getHooks(hooksParameters), immutableData);
