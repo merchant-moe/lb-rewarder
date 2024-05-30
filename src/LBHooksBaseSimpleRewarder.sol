@@ -43,7 +43,10 @@ abstract contract LBHooksBaseSimpleRewarder is LBHooksBaseRewarder, ILBHooksBase
 
     /**
      * @dev Sets the rewarder parameters
-     * @param maxRewardPerSecond The maximum reward per second
+     * @param maxRewardPerSecond The maximum reward per second:
+     * If the expected duration is 0 and the maxRewardPerSecond is 0, the rewarder will be stopped.
+     * If the `maxRewardPerSecond * expectedDuration` is greater than the remaining rewards, the reward per second will be adjusted
+     * to the remaining rewards divided by the expected duration.
      * @param startTimestamp The start timestamp
      * @param expectedDuration The expected duration
      * @return rewardPerSecond The reward per second
@@ -60,7 +63,10 @@ abstract contract LBHooksBaseSimpleRewarder is LBHooksBaseRewarder, ILBHooksBase
 
     /**
      * @dev Sets the reward per second
-     * @param maxRewardPerSecond The maximum reward per second
+     * @param maxRewardPerSecond The maximum reward per second:
+     * If the expected duration is 0 and the maxRewardPerSecond is 0, the rewarder will be stopped.
+     * If the `maxRewardPerSecond * expectedDuration` is greater than the remaining rewards, the reward per second will be adjusted
+     * to the remaining rewards divided by the expected duration.
      * @param expectedDuration The expected duration
      * @return rewardPerSecond The reward per second
      */
@@ -79,7 +85,10 @@ abstract contract LBHooksBaseSimpleRewarder is LBHooksBaseRewarder, ILBHooksBase
 
     /**
      * @dev Internal function to set the rewarder parameters
-     * @param maxRewardPerSecond The maximum reward per second
+     * @param maxRewardPerSecond The maximum reward per second:
+     * If the expected duration is 0 and the maxRewardPerSecond is 0, the rewarder will be stopped.
+     * If the `maxRewardPerSecond * expectedDuration` is greater than the remaining rewards, the reward per second will be adjusted
+     * to the remaining rewards divided by the expected duration.
      * @param startTimestamp The start timestamp
      * @param expectedDuration The expected duration
      * @return rewardPerSecond The reward per second
