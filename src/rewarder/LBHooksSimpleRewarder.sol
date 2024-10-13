@@ -5,6 +5,7 @@ import {Hooks} from "@lb-protocol/src/libraries/Hooks.sol";
 
 import {LBHooksBaseSimpleRewarder} from "../base/LBHooksBaseSimpleRewarder.sol";
 import {LBHooksBaseParentRewarder} from "../base/LBHooksBaseParentRewarder.sol";
+import {LBHooksRewarderVirtual} from "../base/LBHooksRewarderVirtual.sol";
 import {LBHooksBaseRewarder} from "../base/LBHooksBaseRewarder.sol";
 import {ILBHooksSimpleRewarder} from "../interfaces/ILBHooksSimpleRewarder.sol";
 
@@ -16,7 +17,11 @@ import {TokenHelper} from "../library/TokenHelper.sol";
  * It can also have an extra rewarder to distribute a second token to the LPs
  * It will reward the LPs that are inside the range set in this contract
  */
-contract LBHooksSimpleRewarder is LBHooksBaseSimpleRewarder, LBHooksBaseParentRewarder, ILBHooksSimpleRewarder {
+abstract contract LBHooksSimpleRewarder is
+    LBHooksBaseSimpleRewarder,
+    LBHooksBaseParentRewarder,
+    ILBHooksSimpleRewarder
+{
     /**
      * @dev Constructor of the contract
      * @param lbHooksManager The address of the LBHooksManager contract
@@ -26,7 +31,7 @@ contract LBHooksSimpleRewarder is LBHooksBaseSimpleRewarder, LBHooksBaseParentRe
     function _onClaim(address user, uint256[] memory ids)
         internal
         virtual
-        override(LBHooksBaseRewarder, LBHooksBaseParentRewarder)
+        override(LBHooksRewarderVirtual, LBHooksBaseParentRewarder)
     {
         LBHooksBaseParentRewarder._onClaim(user, ids);
     }
@@ -66,4 +71,6 @@ contract LBHooksSimpleRewarder is LBHooksBaseSimpleRewarder, LBHooksBaseParentRe
     ) internal virtual override(LBHooksBaseRewarder, LBHooksBaseParentRewarder) {
         LBHooksBaseParentRewarder._beforeBatchTransferFrom(sender, from, to, ids, amounts);
     }
+
+    function _onHooksSet(bytes calldata) internal virtual override {}
 }

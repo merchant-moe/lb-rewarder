@@ -13,7 +13,7 @@ import {TokenHelper} from "../library/TokenHelper.sol";
  * @dev This contract will be used as a second rewarder on top of the main rewarder to distribute a second token to the LPs
  * It will reward the LPs that are inside the range set in this contract
  */
-contract LBHooksExtraRewarder is LBHooksBaseSimpleRewarder, ILBHooksExtraRewarder {
+abstract contract LBHooksExtraRewarder is LBHooksBaseSimpleRewarder, ILBHooksExtraRewarder {
     /**
      * @dev Constructor of the contract
      * @param lbHooksManager The address of the LBHooksManager contract
@@ -73,4 +73,9 @@ contract LBHooksExtraRewarder is LBHooksBaseSimpleRewarder, ILBHooksExtraRewarde
             revert LBHooksExtraRewarder__ParentRewarderNotLinked();
         }
     }
+
+    /**
+     * @dev Overrides the internal function that is called when the rewards are claimed
+     */
+    function _onClaim(address, uint256[] memory) internal virtual override {}
 }

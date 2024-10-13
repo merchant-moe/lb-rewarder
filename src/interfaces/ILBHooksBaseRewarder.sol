@@ -9,7 +9,6 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
  * @dev Interface for the LB Hooks Base Rewarder
  */
 interface ILBHooksBaseRewarder is ILBHooks {
-    error LBHooksBaseRewarder__InvalidDeltaBins();
     error LBHooksBaseRewarder__Overflow();
     error LBHooksBaseRewarder__NativeTransferFailed();
     error LBHooksBaseRewarder__UnlinkedHooks();
@@ -21,7 +20,6 @@ interface ILBHooksBaseRewarder is ILBHooks {
     error LBHooksBaseRewarder__UnauthorizedCaller();
     error LBHooksBaseRewarder__ExceedsMaxNumberOfBins();
 
-    event DeltaBinsSet(int24 deltaBinA, int24 deltaBinB);
     event Claim(address indexed user, uint256 amount);
 
     struct Bin {
@@ -40,8 +38,6 @@ interface ILBHooksBaseRewarder is ILBHooks {
     function getPendingRewards(address user, uint256[] calldata ids) external view returns (uint256 pendingRewards);
 
     function claim(address user, uint256[] calldata ids) external;
-
-    function setDeltaBins(int24 deltaBinA, int24 deltaBinB) external;
 
     function sweep(IERC20 token, address to) external;
 }
