@@ -65,7 +65,7 @@ contract OracleIdChainlink is IOracleId {
     function getLatestId() external view override returns (uint24) {
         (, int256 answer,, uint256 updatedAt,) = _oracle.latestRoundData();
 
-        if (answer <= 0) revert OracleIdChainlink__InvalidPrice();
+        if (answer <= 0 || uint256(answer) > type(uint128).max) revert OracleIdChainlink__InvalidPrice();
         if (block.timestamp > updatedAt + _heartbeat) revert OracleIdChainlink__StalePrice();
 
         uint256 priceX128 =
@@ -73,10 +73,8 @@ contract OracleIdChainlink is IOracleId {
 
         uint24 id = PriceHelper.getIdFromPrice(priceX128, _binStep);
 
-        uint256 priceAfterX128 = PriceHelper.getPriceFromId(id + 1, _binStep);
+        uint256 priceAtId = PriceHelper.getPriceFromId(id, _binStep);
 
-        unchecked {
-            return priceAfterX128 > priceX128 ? id : id + 1;
-        }
+        return priceAtId > priceX128 ? id - 1 : id;
     }
 }
