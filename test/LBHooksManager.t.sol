@@ -4,8 +4,8 @@ pragma solidity ^0.8.20;
 
 import "test/TestHelper.sol";
 
-import "src/rewarder/LBHooksMCRewarder.sol";
-import "src/rewarder/LBHooksExtraRewarder.sol";
+import "src/delta/LBHooksDeltaMCRewarder.sol";
+import "src/delta/LBHooksDeltaExtraRewarder.sol";
 
 contract LBHooksManagerTest is TestHelper {
     bytes32 rewarderHooksParameters;
@@ -14,10 +14,11 @@ contract LBHooksManagerTest is TestHelper {
     function setUp() public override {
         super.setUp();
 
-        rewarderHooksParameters =
-            Hooks.setHooks(hooksParameters, address(new LBHooksMCRewarder(address(lbHooksManager), masterchef, moe)));
+        rewarderHooksParameters = Hooks.setHooks(
+            hooksParameters, address(new LBHooksDeltaMCRewarder(address(lbHooksManager), masterchef, moe))
+        );
         extraRewarderHooksParameters =
-            Hooks.setHooks(hooksParameters, address(new LBHooksExtraRewarder(address(lbHooksManager))));
+            Hooks.setHooks(hooksParameters, address(new LBHooksDeltaExtraRewarder(address(lbHooksManager))));
     }
 
     function test_GetLBHooksParameters() public {
@@ -96,7 +97,7 @@ contract LBHooksManagerTest is TestHelper {
             lbHooksManager.getHooksLength(ILBHooksManager.LBHooksType.MCRewarder), 0, "test_createLBHooksMCRewarder::1"
         );
 
-        LBHooksMCRewarder lbHooks = LBHooksMCRewarder(
+        LBHooksDeltaMCRewarder lbHooks = LBHooksDeltaMCRewarder(
             payable(
                 address(
                     lbHooksManager.createLBHooksMCRewarder(

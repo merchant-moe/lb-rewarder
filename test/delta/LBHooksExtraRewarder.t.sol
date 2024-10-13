@@ -6,26 +6,28 @@ import "test/TestHelper.sol";
 
 import "src/base/LBHooksBaseRewarder.sol";
 import "src/base/LBHooksBaseSimpleRewarder.sol";
-import "src/rewarder/LBHooksMCRewarder.sol";
-import "src/rewarder/LBHooksExtraRewarder.sol";
+import "src/delta/LBHooksDeltaMCRewarder.sol";
+import "src/delta/LBHooksDeltaExtraRewarder.sol";
 
 contract LBHooksExtraRewarderTest is TestHelper {
-    LBHooksMCRewarder lbHooks;
-    LBHooksExtraRewarder lbHooksExtra;
+    LBHooksDeltaMCRewarder lbHooks;
+    LBHooksDeltaExtraRewarder lbHooksExtra;
 
     function setUp() public override {
         super.setUp();
 
         lbHooksManager.setLBHooksParameters(
             ILBHooksManager.LBHooksType.MCRewarder,
-            Hooks.setHooks(hooksParameters, address(new LBHooksMCRewarder(address(lbHooksManager), masterchef, moe)))
+            Hooks.setHooks(
+                hooksParameters, address(new LBHooksDeltaMCRewarder(address(lbHooksManager), masterchef, moe))
+            )
         );
         lbHooksManager.setLBHooksParameters(
             ILBHooksManager.LBHooksType.ExtraRewarder,
-            Hooks.setHooks(hooksParameters, address(new LBHooksExtraRewarder(address(lbHooksManager))))
+            Hooks.setHooks(hooksParameters, address(new LBHooksDeltaExtraRewarder(address(lbHooksManager))))
         );
 
-        lbHooks = LBHooksMCRewarder(
+        lbHooks = LBHooksDeltaMCRewarder(
             payable(
                 address(
                     lbHooksManager.createLBHooksMCRewarder(
@@ -35,7 +37,7 @@ contract LBHooksExtraRewarderTest is TestHelper {
             )
         );
 
-        lbHooksExtra = LBHooksExtraRewarder(
+        lbHooksExtra = LBHooksDeltaExtraRewarder(
             payable(
                 address(
                     lbHooksManager.createLBHooksExtraRewarder(

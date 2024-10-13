@@ -5,13 +5,13 @@ pragma solidity ^0.8.20;
 import "test/TestHelper.sol";
 
 import {ILBHooksBaseRewarder, LBHooksBaseRewarder} from "src/base/LBHooksBaseRewarder.sol";
-import "src/rewarder/LBHooksMCRewarder.sol";
-import "src/rewarder/LBHooksExtraRewarder.sol";
+import "src/delta/LBHooksDeltaMCRewarder.sol";
+import "src/delta/LBHooksDeltaExtraRewarder.sol";
 import "src/LBHooksLens.sol";
 
 contract LBHooksLensTest is TestHelper {
-    LBHooksMCRewarder lbHooks;
-    LBHooksExtraRewarder lbHooksExtra;
+    LBHooksDeltaMCRewarder lbHooks;
+    LBHooksDeltaExtraRewarder lbHooksExtra;
     LBHooksLens lbHooksLens;
 
     function setUp() public override {
@@ -19,14 +19,16 @@ contract LBHooksLensTest is TestHelper {
 
         lbHooksManager.setLBHooksParameters(
             ILBHooksManager.LBHooksType.MCRewarder,
-            Hooks.setHooks(hooksParameters, address(new LBHooksMCRewarder(address(lbHooksManager), masterchef, moe)))
+            Hooks.setHooks(
+                hooksParameters, address(new LBHooksDeltaMCRewarder(address(lbHooksManager), masterchef, moe))
+            )
         );
         lbHooksManager.setLBHooksParameters(
             ILBHooksManager.LBHooksType.ExtraRewarder,
-            Hooks.setHooks(hooksParameters, address(new LBHooksExtraRewarder(address(lbHooksManager))))
+            Hooks.setHooks(hooksParameters, address(new LBHooksDeltaExtraRewarder(address(lbHooksManager))))
         );
 
-        lbHooks = LBHooksMCRewarder(
+        lbHooks = LBHooksDeltaMCRewarder(
             payable(
                 address(
                     lbHooksManager.createLBHooksMCRewarder(
@@ -36,7 +38,7 @@ contract LBHooksLensTest is TestHelper {
             )
         );
 
-        lbHooksExtra = LBHooksExtraRewarder(
+        lbHooksExtra = LBHooksDeltaExtraRewarder(
             payable(
                 address(
                     lbHooksManager.createLBHooksExtraRewarder(

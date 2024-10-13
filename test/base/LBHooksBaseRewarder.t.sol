@@ -6,6 +6,7 @@ import "test/TestHelper.sol";
 
 import "test/mocks/MockERC20.sol";
 import "src/base/LBHooksBaseRewarder.sol";
+import "src/delta/LBHooksDelta.sol";
 
 contract LBHooksBaseRewarderTest is TestHelper {
     MockLBHooksRewarder hooks;
@@ -268,7 +269,7 @@ contract LBHooksBaseRewarderTest is TestHelper {
         deltaBinA = int24(bound(deltaBinA, type(int24).min + 1, type(int24).max));
         deltaBinB = int24(bound(deltaBinB, type(int24).min, deltaBinA - 1));
 
-        vm.expectRevert(ILBHooksBaseRewarder.LBHooksBaseRewarder__InvalidDeltaBins.selector);
+        vm.expectRevert(LBHooksDelta.LBHooksDelta__InvalidDeltaBins.selector);
         hooks.setDeltaBins(deltaBinA, deltaBinB);
 
         deltaBinA = int24(bound(deltaBinA, type(int24).min, type(int24).max - 11 - 1));
@@ -279,7 +280,7 @@ contract LBHooksBaseRewarderTest is TestHelper {
     }
 }
 
-contract MockLBHooksRewarder is LBHooksBaseRewarder {
+contract MockLBHooksRewarder is LBHooksBaseRewarder, LBHooksDelta {
     uint256 private _lastTimestamp;
 
     constructor() LBHooksBaseRewarder(address(0)) {}
@@ -317,4 +318,6 @@ contract MockLBHooksRewarder is LBHooksBaseRewarder {
             }
         }
     }
+
+    function _onClaim(address, uint256[] memory) internal virtual override {}
 }
