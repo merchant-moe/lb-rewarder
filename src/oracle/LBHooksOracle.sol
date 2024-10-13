@@ -6,7 +6,6 @@ import "../interfaces/IOracleId.sol";
 
 abstract contract LBHooksOracle is LBHooksRewarderVirtual {
     error LBHooksOracle__InvalidDeltaBins();
-    error LBHooksOracle__InvalidOracle();
 
     event ParametersSet(address oracle, int24 deltaBinA, int24 deltaBinB);
 
@@ -14,9 +13,24 @@ abstract contract LBHooksOracle is LBHooksRewarderVirtual {
     int24 internal _deltaBinA;
     int24 internal _deltaBinB;
 
+    /**
+     * @dev Returns the oracle id address
+     * @return The oracle id address
+     */
+    function getOracle() external view returns (address) {
+        return address(_oracle);
+    }
+
+    /**
+     * @dev Sets the oracle and the delta bins
+     * The delta bins are used to determine the range of bins to be rewarded,
+     * from [oracleId + deltaBinA, oracleId + deltaBinB[ (exclusive).
+     * @param oracle The oracle address
+     * @param deltaBinA The delta bin A
+     * @param deltaBinB The delta bin B
+     */
     function setParameters(IOracleId oracle, int24 deltaBinA, int24 deltaBinB) external onlyOwner {
         if (deltaBinA > deltaBinB) revert LBHooksOracle__InvalidDeltaBins();
-        if (address(oracle) == address(0)) revert LBHooksOracle__InvalidOracle();
 
         _updateAccruedRewardsPerShare();
 
@@ -37,9 +51,11 @@ abstract contract LBHooksOracle is LBHooksRewarderVirtual {
     function _getRewardedBounds(uint24) internal view virtual override returns (uint256 binStart, uint256 binEnd) {
         (IOracleId oracle, int24 deltaBinA, int24 deltaBinB) = (_oracle, _deltaBinA, _deltaBinB);
 
-        uint24 oracleId = oracle.getLatestId();
+        if (address(oracle) != address(0)) {
+            uint24 oracleId = oracle.getLatestId();
 
-        binStart = uint256(int256(uint256(oracleId)) + deltaBinA);
-        binEnd = uint256(int256(uint256(oracleId)) + deltaBinB);
+            binStart = uint256(int256(uint256(oracleId)) + deltaBinA);
+            binEnd = uint256(int256(uint256(oracleId)) + deltaBinB);
+        }
     }
 }
