@@ -1,0 +1,45 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+import "../base/LBHooksRewarderVirtual.sol";
+import "../interfaces/IOracleId.sol";
+
+abstract contract LBHooksOracle is LBHooksRewarderVirtual {
+    error LBHooksOracle__InvalidDeltaBins();
+    error LBHooksOracle__InvalidOracle();
+
+    event ParametersSet(address oracle, int24 deltaBinA, int24 deltaBinB);
+
+    IOracleId internal _oracle;
+    int24 internal _deltaBinA;
+    int24 internal _deltaBinB;
+
+    function setParameters(IOracleId oracle, int24 deltaBinA, int24 deltaBinB) external onlyOwner {
+        if (deltaBinA > deltaBinB) revert LBHooksOracle__InvalidDeltaBins();
+        if (address(oracle) == address(0)) revert LBHooksOracle__InvalidOracle();
+
+        _updateAccruedRewardsPerShare();
+
+        _oracle = oracle;
+        _deltaBinA = deltaBinA;
+        _deltaBinB = deltaBinB;
+
+        _getRewardedRange(); // Make sure that the constraints are respected
+
+        emit ParametersSet(address(oracle), deltaBinA, deltaBinB);
+    }
+
+    /**
+     * @dev Returns the rewarded start and end id (exclusive)
+     * @return binStart The bin start to be rewarded
+     * @return binEnd The bin end to be rewarded, exclusive
+     */
+    function _getRewardedBounds(uint24) internal view virtual override returns (uint256 binStart, uint256 binEnd) {
+        (IOracleId oracle, int24 deltaBinA, int24 deltaBinB) = (_oracle, _deltaBinA, _deltaBinB);
+
+        uint24 oracleId = oracle.getLatestId();
+
+        binStart = uint256(int256(uint256(oracleId)) + deltaBinA);
+        binEnd = uint256(int256(uint256(oracleId)) + deltaBinB);
+    }
+}
