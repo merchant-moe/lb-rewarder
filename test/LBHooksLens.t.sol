@@ -2,12 +2,12 @@
 
 pragma solidity ^0.8.20;
 
-import "./TestHelper.sol";
+import "test/TestHelper.sol";
 
-import {ILBHooksBaseRewarder, LBHooksBaseRewarder} from "../src/LBHooksBaseRewarder.sol";
-import "../src/LBHooksMCRewarder.sol";
-import "../src/LBHooksExtraRewarder.sol";
-import "../src/LBHooksLens.sol";
+import {ILBHooksBaseRewarder, LBHooksBaseRewarder} from "src/base/LBHooksBaseRewarder.sol";
+import "src/rewarder/LBHooksMCRewarder.sol";
+import "src/rewarder/LBHooksExtraRewarder.sol";
+import "src/LBHooksLens.sol";
 
 contract LBHooksLensTest is TestHelper {
     LBHooksMCRewarder lbHooks;

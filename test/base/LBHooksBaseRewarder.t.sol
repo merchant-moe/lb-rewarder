@@ -2,10 +2,10 @@
 
 pragma solidity ^0.8.20;
 
-import {TestHelper} from "./TestHelper.sol";
+import "test/TestHelper.sol";
 
-import "./mocks/MockERC20.sol";
-import "../src/LBHooksBaseRewarder.sol";
+import "test/mocks/MockERC20.sol";
+import "src/base/LBHooksBaseRewarder.sol";
 
 contract LBHooksBaseRewarderTest is TestHelper {
     MockLBHooksRewarder hooks;

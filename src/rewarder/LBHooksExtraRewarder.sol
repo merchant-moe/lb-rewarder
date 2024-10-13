@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {LBHooksBaseRewarder, Hooks} from "./LBHooksBaseRewarder.sol";
-import {ILBHooksExtraRewarder} from "./interfaces/ILBHooksExtraRewarder.sol";
-import {ILBHooksBaseParentRewarder} from "./interfaces/ILBHooksBaseParentRewarder.sol";
-import {LBHooksBaseSimpleRewarder} from "./LBHooksBaseSimpleRewarder.sol";
+import {LBHooksBaseRewarder, Hooks} from "../base/LBHooksBaseRewarder.sol";
+import {ILBHooksExtraRewarder} from "../interfaces/ILBHooksExtraRewarder.sol";
+import {ILBHooksBaseParentRewarder} from "../interfaces/ILBHooksBaseParentRewarder.sol";
+import {LBHooksBaseSimpleRewarder} from "../base/LBHooksBaseSimpleRewarder.sol";
 
-import {TokenHelper} from "./library/TokenHelper.sol";
+import {TokenHelper} from "../library/TokenHelper.sol";
 
 /**
  * @title LB Hooks Extra Rewarder

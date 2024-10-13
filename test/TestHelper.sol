@@ -10,9 +10,9 @@ import {ImmutableClone} from "@lb-protocol/src/libraries/ImmutableClone.sol";
 
 import "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 
-import "./mocks/MockERC20.sol";
-import "./mocks/MockMasterChef.sol";
-import "../src/LBHooksManager.sol";
+import "test/mocks/MockERC20.sol";
+import "test/mocks/MockMasterChef.sol";
+import "src/LBHooksManager.sol";
 
 abstract contract TestHelper is Test {
     uint16 public constant DEFAULT_BIN_STEP = 25;

@@ -3,12 +3,12 @@ pragma solidity ^0.8.20;
 
 import {Hooks} from "@lb-protocol/src/libraries/Hooks.sol";
 
-import {LBHooksBaseSimpleRewarder} from "./LBHooksBaseSimpleRewarder.sol";
-import {LBHooksBaseParentRewarder} from "./LBHooksBaseParentRewarder.sol";
-import {LBHooksBaseRewarder} from "./LBHooksBaseRewarder.sol";
-import {ILBHooksSimpleRewarder} from "./interfaces/ILBHooksSimpleRewarder.sol";
+import {LBHooksBaseSimpleRewarder} from "../base/LBHooksBaseSimpleRewarder.sol";
+import {LBHooksBaseParentRewarder} from "../base/LBHooksBaseParentRewarder.sol";
+import {LBHooksBaseRewarder} from "../base/LBHooksBaseRewarder.sol";
+import {ILBHooksSimpleRewarder} from "../interfaces/ILBHooksSimpleRewarder.sol";
 
-import {TokenHelper} from "./library/TokenHelper.sol";
+import {TokenHelper} from "../library/TokenHelper.sol";
 
 /**
  * @title LB Hooks Simple Rewarder

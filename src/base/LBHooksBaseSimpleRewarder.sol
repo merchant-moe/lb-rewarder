@@ -2,9 +2,9 @@
 pragma solidity ^0.8.20;
 
 import {LBHooksBaseRewarder, Hooks} from "./LBHooksBaseRewarder.sol";
-import {ILBHooksBaseSimpleRewarder} from "./interfaces/ILBHooksBaseSimpleRewarder.sol";
+import {ILBHooksBaseSimpleRewarder} from "../interfaces/ILBHooksBaseSimpleRewarder.sol";
 
-import {TokenHelper} from "./library/TokenHelper.sol";
+import {TokenHelper} from "../library/TokenHelper.sol";
 
 /**
  * @title LB Hooks Base Simple Rewarder

@@ -4,8 +4,8 @@ pragma solidity ^0.8.20;
 import {Hooks} from "@lb-protocol/src/libraries/Hooks.sol";
 
 import {LBHooksBaseRewarder, ILBHooksBaseRewarder} from "./LBHooksBaseRewarder.sol";
-import {ILBHooksBaseParentRewarder} from "./interfaces/ILBHooksBaseParentRewarder.sol";
-import {ILBHooksExtraRewarder} from "./interfaces/ILBHooksExtraRewarder.sol";
+import {ILBHooksBaseParentRewarder} from "../interfaces/ILBHooksBaseParentRewarder.sol";
+import {ILBHooksExtraRewarder} from "../interfaces/ILBHooksExtraRewarder.sol";
 
 /**
  * @title LB Hooks Base Parent Rewarder

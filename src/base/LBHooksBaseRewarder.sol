@@ -14,8 +14,8 @@ import {BinHelper} from "@lb-protocol/src/libraries/BinHelper.sol";
 import {Hooks} from "@lb-protocol/src/libraries/Hooks.sol";
 import {SafeCast} from "@lb-protocol/src/libraries/math/SafeCast.sol";
 
-import {ILBHooksBaseRewarder} from "./interfaces/ILBHooksBaseRewarder.sol";
-import {TokenHelper, IERC20} from "./library/TokenHelper.sol";
+import {ILBHooksBaseRewarder} from "../interfaces/ILBHooksBaseRewarder.sol";
+import {TokenHelper, IERC20} from "../library/TokenHelper.sol";
 
 /**
  * @title LB Hooks Base Rewarder
