@@ -3,6 +3,10 @@ pragma solidity ^0.8.20;
 
 import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 
+/**
+ * @title LB Hooks Rewarder Virtual
+ * @dev Abstract contract for the LB Hooks Rewarders, it contains the important functions that the rewarders should implement
+ */
 abstract contract LBHooksRewarderVirtual is Ownable2StepUpgradeable {
     /**
      * @dev Internal function that can be overriden to add custom logic when the rewarder is set

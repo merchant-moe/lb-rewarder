@@ -8,7 +8,7 @@ import "../interfaces/IChainlinkAggregatorV3.sol";
 
 /**
  * @title Oracle Id
- * @dev Contract that uses a chainlink price oracle to return the id of that price
+ * @dev Contract that uses a chainlink price oracle to return the bin id of that price
  */
 contract OracleIdChainlink is IOracleId {
     error OracleIdChainlink__InvalidPrice();

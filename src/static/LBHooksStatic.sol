@@ -3,6 +3,11 @@ pragma solidity ^0.8.20;
 
 import "../base/LBHooksRewarderVirtual.sol";
 
+/**
+ * @title LB Hooks Static Rewarder
+ * @dev Abstract contract for the LB Hooks Static Rewarder
+ * This contract allows to distribute rewards to LPs of the [binStart, binEnd[ bins
+ */
 abstract contract LBHooksStatic is LBHooksRewarderVirtual {
     error LBHooksStatic__InvalidBins();
 

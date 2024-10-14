@@ -4,6 +4,10 @@ pragma solidity ^0.8.20;
 import {LBHooksExtraRewarder} from "../rewarder/LBHooksExtraRewarder.sol";
 import {LBHooksStatic} from "./LBHooksStatic.sol";
 
+/**
+ * @title LB Hooks Static Extra Rewarder
+ * @dev Implementation of the LB Hooks Static Extra Rewarder
+ */
 contract LBHooksStaticExtraRewarder is LBHooksExtraRewarder, LBHooksStatic {
     /**
      * @dev Constructor of the contract

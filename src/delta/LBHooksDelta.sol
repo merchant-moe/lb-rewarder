@@ -3,6 +3,11 @@ pragma solidity ^0.8.20;
 
 import "../base/LBHooksRewarderVirtual.sol";
 
+/**
+ * @title LB Hooks Delta Rewarder
+ * @dev Abstract contract for the LB Hooks Delta Rewarder
+ * This contract allows to distribute rewards to LPs of the [activeId + deltaBinA, activeId + deltaBinB[ bins
+ */
 abstract contract LBHooksDelta is LBHooksRewarderVirtual {
     error LBHooksDelta__InvalidDeltaBins();
 

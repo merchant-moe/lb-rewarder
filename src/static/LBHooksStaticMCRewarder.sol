@@ -4,6 +4,10 @@ pragma solidity ^0.8.20;
 import {LBHooksMCRewarder, IMasterChef, IERC20} from "../rewarder/LBHooksMCRewarder.sol";
 import {LBHooksStatic} from "./LBHooksStatic.sol";
 
+/**
+ * @title LB Hooks Static MC Rewarder
+ * @dev Implementation of the LB Hooks Static MC Rewarder
+ */
 contract LBHooksStaticMCRewarder is LBHooksMCRewarder, LBHooksStatic {
     /**
      * @dev Constructor of the contract
