@@ -17,9 +17,15 @@ interface ILBHooksManager {
 
     enum LBHooksType {
         Invalid,
-        MCRewarder,
-        ExtraRewarder,
-        SimpleRewarder
+        DeltaMCRewarder,
+        DeltaExtraRewarder,
+        DeltaSimpleRewarder,
+        StaticMCRewarder,
+        StaticExtraRewarder,
+        StaticSimpleRewarder,
+        OracleMCRewarder,
+        OracleExtraRewarder,
+        OracleSimpleRewarder
     }
 
     event HooksParametersSet(LBHooksType lbHooksType, bytes32 hooksParameters);
@@ -36,11 +42,16 @@ interface ILBHooksManager {
 
     function setLBHooksParameters(LBHooksType lbHooksType, bytes32 hooksParameters) external;
 
-    function createLBHooksMCRewarder(IERC20 tokenX, IERC20 tokenY, uint16 binStep, address initialOwner)
-        external
-        returns (address);
+    function createLBHooksMCRewarder(
+        LBHooksType lbHooksType,
+        IERC20 tokenX,
+        IERC20 tokenY,
+        uint16 binStep,
+        address initialOwner
+    ) external returns (address);
 
     function createLBHooksSimpleRewarder(
+        LBHooksType lbHooksType,
         IERC20 tokenX,
         IERC20 tokenY,
         uint16 binStep,
@@ -49,6 +60,7 @@ interface ILBHooksManager {
     ) external returns (address);
 
     function createLBHooksExtraRewarder(
+        LBHooksType lbHooksType,
         IERC20 tokenX,
         IERC20 tokenY,
         uint16 binStep,

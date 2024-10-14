@@ -17,11 +17,11 @@ contract LBHooksSimpleRewarderTest is TestHelper {
         super.setUp();
 
         lbHooksManager.setLBHooksParameters(
-            ILBHooksManager.LBHooksType.SimpleRewarder,
+            ILBHooksManager.LBHooksType.DeltaSimpleRewarder,
             Hooks.setHooks(hooksParameters, address(new LBHooksDeltaSimpleRewarder(address(lbHooksManager))))
         );
         lbHooksManager.setLBHooksParameters(
-            ILBHooksManager.LBHooksType.ExtraRewarder,
+            ILBHooksManager.LBHooksType.DeltaExtraRewarder,
             Hooks.setHooks(hooksParameters, address(new LBHooksDeltaExtraRewarder(address(lbHooksManager))))
         );
 
@@ -29,6 +29,7 @@ contract LBHooksSimpleRewarderTest is TestHelper {
             payable(
                 address(
                     lbHooksManager.createLBHooksSimpleRewarder(
+                        ILBHooksManager.LBHooksType.DeltaSimpleRewarder,
                         IERC20(address(token0)),
                         IERC20(address(token1)),
                         DEFAULT_BIN_STEP,
@@ -43,6 +44,7 @@ contract LBHooksSimpleRewarderTest is TestHelper {
             payable(
                 address(
                     lbHooksManager.createLBHooksExtraRewarder(
+                        ILBHooksManager.LBHooksType.DeltaExtraRewarder,
                         IERC20(address(token0)),
                         IERC20(address(token1)),
                         DEFAULT_BIN_STEP,

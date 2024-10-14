@@ -106,25 +106,28 @@ contract LBHooksManager is Ownable2StepUpgradeable, ILBHooksManager {
      * @dev Creates a new LB Hooks Rewarder
      * This will also try to set the LB Hooks parameters on the pair
      * Only callable by the owner
+     * @param lbHooksType The LB Hooks type
      * @param tokenX The address of the token X
      * @param tokenY The address of the token Y
      * @param binStep The bin step
      * @param initialOwner The address of the initial owner
      * @return rewarder The address of the LB Hooks Rewarder
      */
-    function createLBHooksMCRewarder(IERC20 tokenX, IERC20 tokenY, uint16 binStep, address initialOwner)
-        external
-        override
-        onlyOwner
-        returns (address rewarder)
-    {
-        (ILBPair lbPair, bytes32 hooksParameters) =
-            _getLBPairAndHooksParameters(LBHooksType.MCRewarder, tokenX, tokenY, binStep);
+    function createLBHooksMCRewarder(
+        LBHooksType lbHooksType,
+        IERC20 tokenX,
+        IERC20 tokenY,
+        uint16 binStep,
+        address initialOwner
+    ) external override onlyOwner returns (address rewarder) {
+        if (uint8(lbHooksType) % 3 != 1) revert LBHooksManager__InvalidLBHooksType();
+
+        (ILBPair lbPair, bytes32 hooksParameters) = _getLBPairAndHooksParameters(lbHooksType, tokenX, tokenY, binStep);
 
         uint256 pid = _masterChef.getNumberOfFarms();
         bytes memory immutableData = abi.encodePacked(lbPair, pid);
 
-        rewarder = _cloneHooks(LBHooksType.MCRewarder, Hooks.getHooks(hooksParameters), immutableData);
+        rewarder = _cloneHooks(lbHooksType, Hooks.getHooks(hooksParameters), immutableData);
 
         _masterChef.add(IERC20(rewarder), IMasterChefRewarder(address(0)));
 
@@ -140,6 +143,7 @@ contract LBHooksManager is Ownable2StepUpgradeable, ILBHooksManager {
     /**
      * @dev Creates a new LB Hooks Simple Rewarder
      * Only callable by the owner
+     * @param lbHooksType The LB Hooks type
      * @param tokenX The address of the token X
      * @param tokenY The address of the token Y
      * @param binStep The bin step
@@ -148,20 +152,24 @@ contract LBHooksManager is Ownable2StepUpgradeable, ILBHooksManager {
      * @return rewarder The address of the LB Hooks Simple Rewarder
      */
     function createLBHooksSimpleRewarder(
+        LBHooksType lbHooksType,
         IERC20 tokenX,
         IERC20 tokenY,
         uint16 binStep,
         IERC20 rewardToken,
         address initialOwner
     ) external override onlyOwner returns (address rewarder) {
-        (ILBPair lbPair, bytes32 hooksParameters) =
-            _getLBPairAndHooksParameters(LBHooksType.SimpleRewarder, tokenX, tokenY, binStep);
+        if (lbHooksType == LBHooksType.Invalid || uint8(lbHooksType) % 3 != 0) {
+            revert LBHooksManager__InvalidLBHooksType();
+        }
+
+        (ILBPair lbPair, bytes32 hooksParameters) = _getLBPairAndHooksParameters(lbHooksType, tokenX, tokenY, binStep);
 
         address lbHooksAddress = Hooks.getHooks(lbPair.getLBHooksParameters());
 
         bytes memory immutableData = abi.encodePacked(lbPair, rewardToken, lbHooksAddress);
 
-        rewarder = _cloneHooks(LBHooksType.SimpleRewarder, Hooks.getHooks(hooksParameters), immutableData);
+        rewarder = _cloneHooks(lbHooksType, Hooks.getHooks(hooksParameters), immutableData);
 
         _lbFactory.setLBHooksParametersOnPair(
             tokenX, tokenY, binStep, Hooks.setHooks(hooksParameters, rewarder), abi.encode(initialOwner)
@@ -180,14 +188,16 @@ contract LBHooksManager is Ownable2StepUpgradeable, ILBHooksManager {
      * @return extraRewarder The address of the LB Hooks Extra Rewarder
      */
     function createLBHooksExtraRewarder(
+        LBHooksType lbHooksType,
         IERC20 tokenX,
         IERC20 tokenY,
         uint16 binStep,
         IERC20 rewardToken,
         address initialOwner
     ) external override onlyOwner returns (address extraRewarder) {
-        (ILBPair lbPair, bytes32 hooksParameters) =
-            _getLBPairAndHooksParameters(LBHooksType.ExtraRewarder, tokenX, tokenY, binStep);
+        if (uint8(lbHooksType) % 3 != 2) revert LBHooksManager__InvalidLBHooksType();
+
+        (ILBPair lbPair, bytes32 hooksParameters) = _getLBPairAndHooksParameters(lbHooksType, tokenX, tokenY, binStep);
 
         address lbHooksAddress = Hooks.getHooks(lbPair.getLBHooksParameters());
 
@@ -195,7 +205,7 @@ contract LBHooksManager is Ownable2StepUpgradeable, ILBHooksManager {
 
         bytes memory immutableData = abi.encodePacked(lbPair, rewardToken, lbHooksAddress);
 
-        extraRewarder = _cloneHooks(LBHooksType.ExtraRewarder, Hooks.getHooks(hooksParameters), immutableData);
+        extraRewarder = _cloneHooks(lbHooksType, Hooks.getHooks(hooksParameters), immutableData);
 
         ILBHooksBaseParentRewarder(lbHooksAddress).setLBHooksExtraRewarder(extraRewarder, abi.encode(initialOwner));
     }

@@ -198,7 +198,7 @@ contract LBHooksLens {
             parameters.rewardToken = getRewardToken(hooks);
             (parameters.rangeStart, parameters.rangeEnd) = getRewardedRange(hooks);
 
-            if (parameters.hooksType == ILBHooksManager.LBHooksType.MCRewarder) {
+            if (uint8(parameters.hooksType) % 3 == 1) {
                 parameters.pid = getPid(hooks);
                 parameters.moePerSecond = getMoePerSecond(parameters.pid);
             } else {

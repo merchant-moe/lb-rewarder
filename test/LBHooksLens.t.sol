@@ -18,13 +18,13 @@ contract LBHooksLensTest is TestHelper {
         super.setUp();
 
         lbHooksManager.setLBHooksParameters(
-            ILBHooksManager.LBHooksType.MCRewarder,
+            ILBHooksManager.LBHooksType.DeltaMCRewarder,
             Hooks.setHooks(
                 hooksParameters, address(new LBHooksDeltaMCRewarder(address(lbHooksManager), masterchef, moe))
             )
         );
         lbHooksManager.setLBHooksParameters(
-            ILBHooksManager.LBHooksType.ExtraRewarder,
+            ILBHooksManager.LBHooksType.DeltaExtraRewarder,
             Hooks.setHooks(hooksParameters, address(new LBHooksDeltaExtraRewarder(address(lbHooksManager))))
         );
 
@@ -32,7 +32,11 @@ contract LBHooksLensTest is TestHelper {
             payable(
                 address(
                     lbHooksManager.createLBHooksMCRewarder(
-                        IERC20(address(token0)), IERC20(address(token1)), DEFAULT_BIN_STEP, address(this)
+                        ILBHooksManager.LBHooksType.DeltaMCRewarder,
+                        IERC20(address(token0)),
+                        IERC20(address(token1)),
+                        DEFAULT_BIN_STEP,
+                        address(this)
                     )
                 )
             )
@@ -42,6 +46,7 @@ contract LBHooksLensTest is TestHelper {
             payable(
                 address(
                     lbHooksManager.createLBHooksExtraRewarder(
+                        ILBHooksManager.LBHooksType.DeltaExtraRewarder,
                         IERC20(address(token0)),
                         IERC20(address(token1)),
                         DEFAULT_BIN_STEP,
@@ -81,7 +86,7 @@ contract LBHooksLensTest is TestHelper {
         );
         assertEq(
             uint8(rewarderData.parameters.hooksType),
-            uint8(ILBHooksManager.LBHooksType.MCRewarder),
+            uint8(ILBHooksManager.LBHooksType.DeltaMCRewarder),
             "test_GetPendingRewardSwapAndTransfer::2"
         );
         assertEq(rewarderData.parameters.rewardToken.token, address(moe), "test_GetPendingRewardSwapAndTransfer::3");
@@ -95,7 +100,7 @@ contract LBHooksLensTest is TestHelper {
 
         assertEq(
             uint8(extraRewarderData.parameters.hooksType),
-            uint8(ILBHooksManager.LBHooksType.ExtraRewarder),
+            uint8(ILBHooksManager.LBHooksType.DeltaExtraRewarder),
             "test_GetPendingRewardSwapAndTransfer::11"
         );
         assertEq(

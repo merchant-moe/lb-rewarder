@@ -30,7 +30,7 @@ contract TestLBHooksStatic is TestHelper {
         super.setUp();
 
         lbHooksManager.setLBHooksParameters(
-            ILBHooksManager.LBHooksType.SimpleRewarder,
+            ILBHooksManager.LBHooksType.DeltaSimpleRewarder,
             Hooks.setHooks(hooksParameters, address(new MockLBHooksStatic(address(lbHooksManager))))
         );
 
@@ -38,6 +38,7 @@ contract TestLBHooksStatic is TestHelper {
             payable(
                 address(
                     lbHooksManager.createLBHooksSimpleRewarder(
+                        ILBHooksManager.LBHooksType.DeltaSimpleRewarder,
                         IERC20(address(token0)),
                         IERC20(address(token1)),
                         DEFAULT_BIN_STEP,

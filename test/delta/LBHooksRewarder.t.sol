@@ -17,12 +17,13 @@ contract LBHooksRewarderTest is TestHelper {
             hooksParameters, address(new LBHooksDeltaMCRewarder(address(lbHooksManager), masterchef, moe))
         );
 
-        lbHooksManager.setLBHooksParameters(ILBHooksManager.LBHooksType.MCRewarder, hooksParameters);
+        lbHooksManager.setLBHooksParameters(ILBHooksManager.LBHooksType.DeltaMCRewarder, hooksParameters);
 
         lbHooks = LBHooksDeltaMCRewarder(
             payable(
                 address(
                     lbHooksManager.createLBHooksMCRewarder(
+                        ILBHooksManager.LBHooksType.DeltaMCRewarder, 
                         IERC20(address(token0)), IERC20(address(token1)), DEFAULT_BIN_STEP, address(this)
                     )
                 )

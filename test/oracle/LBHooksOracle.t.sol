@@ -37,7 +37,7 @@ contract TestLBHooksOracle is TestHelper {
         oracleId = new OracleIdChainlink(IChainlinkAggregatorV3(address(oracle)), false, 60, 1);
 
         lbHooksManager.setLBHooksParameters(
-            ILBHooksManager.LBHooksType.SimpleRewarder,
+            ILBHooksManager.LBHooksType.DeltaSimpleRewarder,
             Hooks.setHooks(hooksParameters, address(new MockLBHooksOracle(address(lbHooksManager))))
         );
 
@@ -45,6 +45,7 @@ contract TestLBHooksOracle is TestHelper {
             payable(
                 address(
                     lbHooksManager.createLBHooksSimpleRewarder(
+                        ILBHooksManager.LBHooksType.DeltaSimpleRewarder,
                         IERC20(address(token0)),
                         IERC20(address(token1)),
                         DEFAULT_BIN_STEP,
