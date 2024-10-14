@@ -19,11 +19,13 @@ abstract contract LBHooksOracle is LBHooksRewarderVirtual {
     int24 internal _deltaBinB;
 
     /**
-     * @dev Returns the oracle id address
-     * @return The oracle id address
+     * @dev Returns the oracle parameters
+     * @return oracle The oracle id address
+     * @return deltaBinA The delta binA
+     * @return deltaBinB The delta binB
      */
-    function getOracle() external view returns (address) {
-        return address(_oracle);
+    function getParameters() external view returns (IOracleId oracle, int24 deltaBinA, int24 deltaBinB) {
+        return (_oracle, _deltaBinA, _deltaBinB);
     }
 
     /**

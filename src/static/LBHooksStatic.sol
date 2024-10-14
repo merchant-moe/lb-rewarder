@@ -17,6 +17,15 @@ abstract contract LBHooksStatic is LBHooksRewarderVirtual {
     uint24 internal _binEnd;
 
     /**
+     * @dev Returns the range of bins to be rewarded
+     * @return binStart The bin start to be rewarded
+     * @return binEnd The bin end to be rewarded, exclusive
+     */
+    function getParameters() external view returns (uint24 binStart, uint24 binEnd) {
+        return (_binStart, _binEnd);
+    }
+
+    /**
      * @dev Sets the range of bins to be rewarded
      * @param binStart The bin start to be rewarded
      * @param binEnd The bin end to be rewarded, exclusive

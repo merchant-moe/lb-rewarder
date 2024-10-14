@@ -17,6 +17,15 @@ abstract contract LBHooksDelta is LBHooksRewarderVirtual {
     int24 internal _deltaBinB;
 
     /**
+     * @dev Returns the delta bins
+     * @return deltaBinA The delta bin A
+     * @return deltaBinB The delta bin B
+     */
+    function getParameters() external view returns (int24 deltaBinA, int24 deltaBinB) {
+        return (_deltaBinA, _deltaBinB);
+    }
+
+    /**
      * @dev Sets the delta bins
      * The delta bins are used to determine the range of bins to be rewarded,
      * from [activeId + deltaBinA, activeId + deltaBinB[ (exclusive).
