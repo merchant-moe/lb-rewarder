@@ -92,20 +92,18 @@ contract TestOracleId is Test {
         assertGt(priceAtIdPlus1, priceX128, "test_Fuzz_GetOracleIdInversed::3");
     }
 
-    function test_Fuzz_Revert_GetOracleId(int256 price) public {
+    function test_Fuzz_GetOracleId_Zero(int256 price) public {
         int256 p = bound(price, type(int256).min, 0);
 
         oracle.setAnswer(p, block.timestamp);
 
-        vm.expectRevert(OracleIdChainlink.OracleIdChainlink__InvalidPrice.selector);
-        oracleId.getLatestId();
+        assertEq(oracleId.getLatestId(), 0);
 
         p = bound(price, int256(uint256(type(uint128).max)) + 1, type(int256).max);
 
         oracle.setAnswer(p, block.timestamp);
 
-        vm.expectRevert(OracleIdChainlink.OracleIdChainlink__InvalidPrice.selector);
-        oracleId.getLatestId();
+        assertEq(oracleId.getLatestId(), 0);
 
         vm.warp(type(uint256).max);
 
@@ -113,7 +111,6 @@ contract TestOracleId is Test {
 
         oracle.setAnswer(1e8, latestUpdatedAt);
 
-        vm.expectRevert(OracleIdChainlink.OracleIdChainlink__StalePrice.selector);
-        oracleId.getLatestId();
+        assertEq(oracleId.getLatestId(), 0);
     }
 }

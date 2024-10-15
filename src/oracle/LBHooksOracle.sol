@@ -61,8 +61,10 @@ abstract contract LBHooksOracle is LBHooksRewarderVirtual {
         if (address(oracle) != address(0)) {
             uint24 oracleId = oracle.getLatestId();
 
-            binStart = uint256(int256(uint256(oracleId)) + deltaBinA);
-            binEnd = uint256(int256(uint256(oracleId)) + deltaBinB);
+            if (oracleId > 0) {
+                binStart = uint256(int256(uint256(oracleId)) + deltaBinA);
+                binEnd = uint256(int256(uint256(oracleId)) + deltaBinB);
+            }
         }
     }
 }

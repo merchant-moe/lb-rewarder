@@ -11,9 +11,6 @@ import "../interfaces/IChainlinkAggregatorV3.sol";
  * @dev Contract that uses a chainlink price oracle to return the bin id of that price
  */
 contract OracleIdChainlink is IOracleId {
-    error OracleIdChainlink__InvalidPrice();
-    error OracleIdChainlink__StalePrice();
-
     IChainlinkAggregatorV3 internal immutable _oracle;
     bool internal immutable _isInverse;
     uint256 internal immutable _oraclePrecision;
@@ -65,8 +62,7 @@ contract OracleIdChainlink is IOracleId {
     function getLatestId() external view override returns (uint24) {
         (, int256 answer,, uint256 updatedAt,) = _oracle.latestRoundData();
 
-        if (answer <= 0 || uint256(answer) > type(uint128).max) revert OracleIdChainlink__InvalidPrice();
-        if (block.timestamp > updatedAt + _heartbeat) revert OracleIdChainlink__StalePrice();
+        if (answer <= 0 || uint256(answer) > type(uint128).max || block.timestamp > updatedAt + _heartbeat) return 0;
 
         uint256 priceX128 =
             _isInverse ? (_oraclePrecision << 128) / uint256(answer) : (uint256(answer) << 128) / _oraclePrecision;
