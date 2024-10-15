@@ -1,10 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {
-    Ownable2StepUpgradeable,
-    OwnableUpgradeable
-} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import {LBBaseHooks} from "@lb-protocol/src/LBBaseHooks.sol";
 import {Uint256x256Math} from "@lb-protocol/src/libraries/math/Uint256x256Math.sol";
 import {Clone} from "@lb-protocol/src/libraries/Clone.sol";
@@ -14,28 +10,26 @@ import {BinHelper} from "@lb-protocol/src/libraries/BinHelper.sol";
 import {Hooks} from "@lb-protocol/src/libraries/Hooks.sol";
 import {SafeCast} from "@lb-protocol/src/libraries/math/SafeCast.sol";
 
-import {ILBHooksBaseRewarder} from "./interfaces/ILBHooksBaseRewarder.sol";
-import {TokenHelper, IERC20} from "./library/TokenHelper.sol";
+import {ILBHooksBaseRewarder} from "../interfaces/ILBHooksBaseRewarder.sol";
+import {TokenHelper, IERC20} from "../library/TokenHelper.sol";
+import {LBHooksRewarderVirtual} from "./LBHooksRewarderVirtual.sol";
 
 /**
  * @title LB Hooks Base Rewarder
  * @dev Base contract for any LB Hooks Rewarder
  */
-abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, Clone, ILBHooksBaseRewarder {
+abstract contract LBHooksBaseRewarder is LBBaseHooks, LBHooksRewarderVirtual, Clone, ILBHooksBaseRewarder {
     using Uint256x256Math for uint256;
     using SafeCast for uint256;
 
     address public immutable implementation;
 
-    int256 internal constant MAX_NUMBER_OF_BINS = 11;
+    uint256 internal constant MAX_NUMBER_OF_BINS = 11;
     uint8 internal constant OFFSET_PRECISION = 128;
     bytes32 internal constant FLAGS =
         Hooks.BEFORE_SWAP_FLAG | Hooks.BEFORE_MINT_FLAG | Hooks.BEFORE_BURN_FLAG | Hooks.BEFORE_TRANSFER_FLAG;
 
     address internal immutable _lbHooksManager;
-
-    int24 internal _deltaBinA;
-    int24 internal _deltaBinB;
 
     uint256 internal _totalUnclaimedRewards;
 
@@ -178,25 +172,6 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
     }
 
     /**
-     * @dev Sets the delta bins
-     * The delta bins are used to determine the range of bins to be rewarded,
-     * from [activeId + deltaBinA, activeId + deltaBinB[ (exclusive).
-     * @param deltaBinA The delta bin A
-     * @param deltaBinB The delta bin B
-     */
-    function setDeltaBins(int24 deltaBinA, int24 deltaBinB) external virtual override onlyOwner {
-        if (deltaBinA > deltaBinB) revert LBHooksBaseRewarder__InvalidDeltaBins();
-        if (int256(deltaBinB) - deltaBinA > MAX_NUMBER_OF_BINS) revert LBHooksBaseRewarder__ExceedsMaxNumberOfBins();
-
-        _updateAccruedRewardsPerShare();
-
-        _deltaBinA = deltaBinA;
-        _deltaBinB = deltaBinB;
-
-        emit DeltaBinsSet(deltaBinA, deltaBinB);
-    }
-
-    /**
      * @dev Sweeps the given token to the given address
      * @param token The address of the token
      * @param to The address of the recipient
@@ -238,15 +213,14 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
         internal
         view
         virtual
+        override
         returns (uint256[] memory rewardedIds, uint24 activeId, uint256 binStart, uint256 binEnd)
     {
         activeId = _getLBPair().getActiveId();
-        (int24 deltaBinA, int24 deltaBinB) = (_deltaBinA, _deltaBinB);
 
-        binStart = uint256(int256(uint256(activeId)) + deltaBinA);
-        binEnd = uint256(int256(uint256(activeId)) + deltaBinB);
-
+        (binStart, binEnd) = _getRewardedBounds(activeId);
         if (binStart > type(uint24).max || binEnd > type(uint24).max) revert LBHooksBaseRewarder__Overflow();
+        if (binEnd - binStart > MAX_NUMBER_OF_BINS) revert LBHooksBaseRewarder__ExceedsMaxNumberOfBins();
 
         uint256 length = binEnd - binStart;
         rewardedIds = new uint256[](length);
@@ -326,7 +300,7 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
     /**
      * @dev Internal function to update the accrued rewards per share
      */
-    function _updateAccruedRewardsPerShare() internal virtual {
+    function _updateAccruedRewardsPerShare() internal virtual override {
         uint256 pendingTotalRewards = _updateRewards();
 
         if (pendingTotalRewards == 0) return;
@@ -480,29 +454,4 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
         _updateUser(from, ids);
         _updateUser(to, ids);
     }
-
-    /**
-     * @dev Internal function that can be overriden to add custom logic when the rewarder is set
-     * @param data The data used to initialize the rewarder
-     */
-    function _onHooksSet(bytes calldata data) internal virtual {}
-
-    /**
-     * @dev Internal function that can be overriden to add custom logic when the rewards are claimed
-     * @param user The address of the user
-     * @param ids The ids of the bins
-     */
-    function _onClaim(address user, uint256[] memory ids) internal virtual {}
-
-    /**
-     * @dev Internal function that **MUST** be overriden to return the total pending rewards
-     * @return pendingTotalRewards The total pending rewards
-     */
-    function _getPendingTotalRewards() internal view virtual returns (uint256 pendingTotalRewards);
-
-    /**
-     * @dev Internal function that **MUST** be overriden to update and return the total pending rewards
-     * @return pendingTotalRewards The total pending rewards
-     */
-    function _updateRewards() internal virtual returns (uint256 pendingTotalRewards);
 }

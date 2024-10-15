@@ -5,10 +5,10 @@ import {IERC20Metadata, IERC20} from "@openzeppelin/contracts/token/ERC20/extens
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {ERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import {IMasterChef, IMasterChefRewarder} from "@moe-core/src/interfaces/IMasterChef.sol";
-import {LBHooksBaseParentRewarder, LBHooksBaseRewarder} from "./LBHooksBaseParentRewarder.sol";
-import {ILBHooksMCRewarder} from "./interfaces/ILBHooksMCRewarder.sol";
+import {LBHooksBaseParentRewarder, LBHooksBaseRewarder} from "../base/LBHooksBaseParentRewarder.sol";
+import {ILBHooksMCRewarder} from "../interfaces/ILBHooksMCRewarder.sol";
 
-import {TokenHelper} from "./library/TokenHelper.sol";
+import {TokenHelper} from "../library/TokenHelper.sol";
 
 /**
  * @title LB Hooks MasterChef Rewarder
@@ -17,7 +17,7 @@ import {TokenHelper} from "./library/TokenHelper.sol";
  * It can also have an extra rewarder to distribute a second token to the LPs
  * It will reward the LPs that are inside the range set in this contract
  */
-contract LBHooksMCRewarder is LBHooksBaseParentRewarder, ERC20Upgradeable, ILBHooksMCRewarder {
+abstract contract LBHooksMCRewarder is LBHooksBaseParentRewarder, ERC20Upgradeable, ILBHooksMCRewarder {
     IMasterChef internal immutable _masterChef;
     IERC20 internal immutable _moe;
 

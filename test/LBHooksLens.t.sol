@@ -2,44 +2,51 @@
 
 pragma solidity ^0.8.20;
 
-import "./TestHelper.sol";
+import "test/TestHelper.sol";
 
-import {ILBHooksBaseRewarder, LBHooksBaseRewarder} from "../src/LBHooksBaseRewarder.sol";
-import "../src/LBHooksMCRewarder.sol";
-import "../src/LBHooksExtraRewarder.sol";
-import "../src/LBHooksLens.sol";
+import {ILBHooksBaseRewarder, LBHooksBaseRewarder} from "src/base/LBHooksBaseRewarder.sol";
+import "src/delta/LBHooksDeltaMCRewarder.sol";
+import "src/delta/LBHooksDeltaExtraRewarder.sol";
+import "src/LBHooksLens.sol";
 
 contract LBHooksLensTest is TestHelper {
-    LBHooksMCRewarder lbHooks;
-    LBHooksExtraRewarder lbHooksExtra;
+    LBHooksDeltaMCRewarder lbHooks;
+    LBHooksDeltaExtraRewarder lbHooksExtra;
     LBHooksLens lbHooksLens;
 
     function setUp() public override {
         super.setUp();
 
         lbHooksManager.setLBHooksParameters(
-            ILBHooksManager.LBHooksType.MCRewarder,
-            Hooks.setHooks(hooksParameters, address(new LBHooksMCRewarder(address(lbHooksManager), masterchef, moe)))
+            ILBHooksManager.LBHooksType.DeltaMCRewarder,
+            Hooks.setHooks(
+                hooksParameters, address(new LBHooksDeltaMCRewarder(address(lbHooksManager), masterchef, moe))
+            )
         );
         lbHooksManager.setLBHooksParameters(
-            ILBHooksManager.LBHooksType.ExtraRewarder,
-            Hooks.setHooks(hooksParameters, address(new LBHooksExtraRewarder(address(lbHooksManager))))
+            ILBHooksManager.LBHooksType.DeltaExtraRewarder,
+            Hooks.setHooks(hooksParameters, address(new LBHooksDeltaExtraRewarder(address(lbHooksManager))))
         );
 
-        lbHooks = LBHooksMCRewarder(
+        lbHooks = LBHooksDeltaMCRewarder(
             payable(
                 address(
                     lbHooksManager.createLBHooksMCRewarder(
-                        IERC20(address(token0)), IERC20(address(token1)), DEFAULT_BIN_STEP, address(this)
+                        ILBHooksManager.LBHooksType.DeltaMCRewarder,
+                        IERC20(address(token0)),
+                        IERC20(address(token1)),
+                        DEFAULT_BIN_STEP,
+                        address(this)
                     )
                 )
             )
         );
 
-        lbHooksExtra = LBHooksExtraRewarder(
+        lbHooksExtra = LBHooksDeltaExtraRewarder(
             payable(
                 address(
                     lbHooksManager.createLBHooksExtraRewarder(
+                        ILBHooksManager.LBHooksType.DeltaExtraRewarder,
                         IERC20(address(token0)),
                         IERC20(address(token1)),
                         DEFAULT_BIN_STEP,
@@ -79,7 +86,7 @@ contract LBHooksLensTest is TestHelper {
         );
         assertEq(
             uint8(rewarderData.parameters.hooksType),
-            uint8(ILBHooksManager.LBHooksType.MCRewarder),
+            uint8(ILBHooksManager.LBHooksType.DeltaMCRewarder),
             "test_GetPendingRewardSwapAndTransfer::2"
         );
         assertEq(rewarderData.parameters.rewardToken.token, address(moe), "test_GetPendingRewardSwapAndTransfer::3");
@@ -93,7 +100,7 @@ contract LBHooksLensTest is TestHelper {
 
         assertEq(
             uint8(extraRewarderData.parameters.hooksType),
-            uint8(ILBHooksManager.LBHooksType.ExtraRewarder),
+            uint8(ILBHooksManager.LBHooksType.DeltaExtraRewarder),
             "test_GetPendingRewardSwapAndTransfer::11"
         );
         assertEq(

@@ -1,19 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {LBHooksBaseRewarder, Hooks} from "./LBHooksBaseRewarder.sol";
-import {ILBHooksExtraRewarder} from "./interfaces/ILBHooksExtraRewarder.sol";
-import {ILBHooksBaseParentRewarder} from "./interfaces/ILBHooksBaseParentRewarder.sol";
-import {LBHooksBaseSimpleRewarder} from "./LBHooksBaseSimpleRewarder.sol";
+import {LBHooksBaseRewarder, Hooks} from "../base/LBHooksBaseRewarder.sol";
+import {ILBHooksExtraRewarder} from "../interfaces/ILBHooksExtraRewarder.sol";
+import {ILBHooksBaseParentRewarder} from "../interfaces/ILBHooksBaseParentRewarder.sol";
+import {LBHooksBaseSimpleRewarder} from "../base/LBHooksBaseSimpleRewarder.sol";
 
-import {TokenHelper} from "./library/TokenHelper.sol";
+import {TokenHelper} from "../library/TokenHelper.sol";
 
 /**
  * @title LB Hooks Extra Rewarder
  * @dev This contract will be used as a second rewarder on top of the main rewarder to distribute a second token to the LPs
  * It will reward the LPs that are inside the range set in this contract
  */
-contract LBHooksExtraRewarder is LBHooksBaseSimpleRewarder, ILBHooksExtraRewarder {
+abstract contract LBHooksExtraRewarder is LBHooksBaseSimpleRewarder, ILBHooksExtraRewarder {
     /**
      * @dev Constructor of the contract
      * @param lbHooksManager The address of the LBHooksManager contract
@@ -73,4 +73,9 @@ contract LBHooksExtraRewarder is LBHooksBaseSimpleRewarder, ILBHooksExtraRewarde
             revert LBHooksExtraRewarder__ParentRewarderNotLinked();
         }
     }
+
+    /**
+     * @dev Overrides the internal function that is called when the rewards are claimed
+     */
+    function _onClaim(address, uint256[] memory) internal virtual override {}
 }

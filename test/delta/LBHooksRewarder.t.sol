@@ -2,26 +2,28 @@
 
 pragma solidity ^0.8.20;
 
-import "./TestHelper.sol";
+import "test/TestHelper.sol";
 
-import "../src/LBHooksMCRewarder.sol";
-import "../src/interfaces/ILBHooksBaseRewarder.sol";
+import "src/delta/LBHooksDeltaMCRewarder.sol";
+import "src/interfaces/ILBHooksBaseRewarder.sol";
 
 contract LBHooksRewarderTest is TestHelper {
-    LBHooksMCRewarder lbHooks;
+    LBHooksDeltaMCRewarder lbHooks;
 
     function setUp() public override {
         super.setUp();
 
-        hooksParameters =
-            Hooks.setHooks(hooksParameters, address(new LBHooksMCRewarder(address(lbHooksManager), masterchef, moe)));
+        hooksParameters = Hooks.setHooks(
+            hooksParameters, address(new LBHooksDeltaMCRewarder(address(lbHooksManager), masterchef, moe))
+        );
 
-        lbHooksManager.setLBHooksParameters(ILBHooksManager.LBHooksType.MCRewarder, hooksParameters);
+        lbHooksManager.setLBHooksParameters(ILBHooksManager.LBHooksType.DeltaMCRewarder, hooksParameters);
 
-        lbHooks = LBHooksMCRewarder(
+        lbHooks = LBHooksDeltaMCRewarder(
             payable(
                 address(
                     lbHooksManager.createLBHooksMCRewarder(
+                        ILBHooksManager.LBHooksType.DeltaMCRewarder, 
                         IERC20(address(token0)), IERC20(address(token1)), DEFAULT_BIN_STEP, address(this)
                     )
                 )

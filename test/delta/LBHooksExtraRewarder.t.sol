@@ -2,43 +2,47 @@
 
 pragma solidity ^0.8.20;
 
-import "./TestHelper.sol";
+import "test/TestHelper.sol";
 
-import "../src/LBHooksBaseRewarder.sol";
-import "../src/LBHooksBaseSimpleRewarder.sol";
-import "../src/LBHooksMCRewarder.sol";
-import "../src/LBHooksExtraRewarder.sol";
+import "src/base/LBHooksBaseRewarder.sol";
+import "src/base/LBHooksBaseSimpleRewarder.sol";
+import "src/delta/LBHooksDeltaMCRewarder.sol";
+import "src/delta/LBHooksDeltaExtraRewarder.sol";
 
 contract LBHooksExtraRewarderTest is TestHelper {
-    LBHooksMCRewarder lbHooks;
-    LBHooksExtraRewarder lbHooksExtra;
+    LBHooksDeltaMCRewarder lbHooks;
+    LBHooksDeltaExtraRewarder lbHooksExtra;
 
     function setUp() public override {
         super.setUp();
 
         lbHooksManager.setLBHooksParameters(
-            ILBHooksManager.LBHooksType.MCRewarder,
-            Hooks.setHooks(hooksParameters, address(new LBHooksMCRewarder(address(lbHooksManager), masterchef, moe)))
+            ILBHooksManager.LBHooksType.DeltaMCRewarder,
+            Hooks.setHooks(
+                hooksParameters, address(new LBHooksDeltaMCRewarder(address(lbHooksManager), masterchef, moe))
+            )
         );
         lbHooksManager.setLBHooksParameters(
-            ILBHooksManager.LBHooksType.ExtraRewarder,
-            Hooks.setHooks(hooksParameters, address(new LBHooksExtraRewarder(address(lbHooksManager))))
+            ILBHooksManager.LBHooksType.DeltaExtraRewarder,
+            Hooks.setHooks(hooksParameters, address(new LBHooksDeltaExtraRewarder(address(lbHooksManager))))
         );
 
-        lbHooks = LBHooksMCRewarder(
+        lbHooks = LBHooksDeltaMCRewarder(
             payable(
                 address(
                     lbHooksManager.createLBHooksMCRewarder(
+                        ILBHooksManager.LBHooksType.DeltaMCRewarder, 
                         IERC20(address(token0)), IERC20(address(token1)), DEFAULT_BIN_STEP, address(this)
                     )
                 )
             )
         );
 
-        lbHooksExtra = LBHooksExtraRewarder(
+        lbHooksExtra = LBHooksDeltaExtraRewarder(
             payable(
                 address(
                     lbHooksManager.createLBHooksExtraRewarder(
+                        ILBHooksManager.LBHooksType.DeltaExtraRewarder,
                         IERC20(address(token0)),
                         IERC20(address(token1)),
                         DEFAULT_BIN_STEP,
