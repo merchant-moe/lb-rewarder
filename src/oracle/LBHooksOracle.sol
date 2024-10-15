@@ -7,7 +7,7 @@ import "../interfaces/IOracleId.sol";
 /**
  * @title LB Hooks Oracle
  * @dev Abstract contract for the LB Hooks Oracle Rewarder
- * This contract allows to distribute rewardsto LPs of the [oracleId + deltaBinA, oracleId + deltaBinB[ bins
+ * This contract allows to distribute rewards to LPs of the [oracleId + deltaBinA, oracleId + deltaBinB[ bins
  */
 abstract contract LBHooksOracle is LBHooksRewarderVirtual {
     error LBHooksOracle__InvalidDeltaBins();
