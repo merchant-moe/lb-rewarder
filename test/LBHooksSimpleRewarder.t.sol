@@ -242,20 +242,20 @@ contract LBHooksSimpleRewarderTest is TestHelper {
         );
         assertApproxEqRel(lbHooks.getRemainingRewards(), 358e18, 1e14, "test_GetPendingRewardSwapAndTransfer::58");
 
-        assertEq(lbHooksExtra.getPendingRewards(alice, ids), 0, "test_GetPendingRewardSwapAndTransfer::58");
-        assertEq(lbHooksExtra.getPendingRewards(bob, ids), 0, "test_GetPendingRewardSwapAndTransfer::59");
+        assertEq(lbHooksExtra.getPendingRewards(alice, ids), 0, "test_GetPendingRewardSwapAndTransfer::59");
+        assertEq(lbHooksExtra.getPendingRewards(bob, ids), 0, "test_GetPendingRewardSwapAndTransfer::60");
 
         vm.prank(alice);
         lbHooks.claim(alice, ids);
 
-        assertEq(lbHooks.getPendingRewards(alice, ids), 0, "test_GetPendingRewardSwapAndTransfer::60");
+        assertEq(lbHooks.getPendingRewards(alice, ids), 0, "test_GetPendingRewardSwapAndTransfer::61");
         assertApproxEqRel(
-            lbHooks.getPendingRewards(bob, ids), 26.5e18, 1e14, "test_GetPendingRewardSwapAndTransfer::61"
+            lbHooks.getPendingRewards(bob, ids), 26.5e18, 1e14, "test_GetPendingRewardSwapAndTransfer::62"
         );
-        assertApproxEqRel(rewardToken01.balanceOf(alice), 15.5e18, 1e14, "test_GetPendingRewardSwapAndTransfer::62");
+        assertApproxEqRel(rewardToken01.balanceOf(alice), 15.5e18, 1e14, "test_GetPendingRewardSwapAndTransfer::63");
 
-        assertEq(lbHooksExtra.getPendingRewards(alice, ids), 0, "test_GetPendingRewardSwapAndTransfer::63");
-        assertEq(lbHooksExtra.getPendingRewards(bob, ids), 0, "test_GetPendingRewardSwapAndTransfer::64");
+        assertEq(lbHooksExtra.getPendingRewards(alice, ids), 0, "test_GetPendingRewardSwapAndTransfer::64");
+        assertEq(lbHooksExtra.getPendingRewards(bob, ids), 0, "test_GetPendingRewardSwapAndTransfer::65");
 
         vm.prank(address(lbHooksManager));
         factory.removeLBHooksOnPair(token0, token1, DEFAULT_BIN_STEP);
@@ -266,11 +266,11 @@ contract LBHooksSimpleRewarderTest is TestHelper {
         vm.expectRevert(ILBHooksBaseRewarder.LBHooksBaseRewarder__UnlinkedHooks.selector);
         lbHooksExtra.claim(address(this), ids);
 
-        assertEq(lbHooks.getPendingRewards(alice, ids), 0, "test_GetPendingRewardSwapAndTransfer::65");
-        assertEq(lbHooks.getPendingRewards(bob, ids), 0, "test_GetPendingRewardSwapAndTransfer::66");
+        assertEq(lbHooks.getPendingRewards(alice, ids), 0, "test_GetPendingRewardSwapAndTransfer::66");
+        assertEq(lbHooks.getPendingRewards(bob, ids), 0, "test_GetPendingRewardSwapAndTransfer::67");
 
-        assertEq(lbHooksExtra.getPendingRewards(alice, ids), 0, "test_GetPendingRewardSwapAndTransfer::67");
-        assertEq(lbHooksExtra.getPendingRewards(bob, ids), 0, "test_GetPendingRewardSwapAndTransfer::68");
+        assertEq(lbHooksExtra.getPendingRewards(alice, ids), 0, "test_GetPendingRewardSwapAndTransfer::68");
+        assertEq(lbHooksExtra.getPendingRewards(bob, ids), 0, "test_GetPendingRewardSwapAndTransfer::69");
     }
 
     function test_GetPendingRewardMintAndBurn() public {
