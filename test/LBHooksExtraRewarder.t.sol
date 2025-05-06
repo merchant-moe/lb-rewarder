@@ -464,6 +464,28 @@ contract LBHooksExtraRewarderTest is TestHelper {
         vm.expectRevert(ILBHooksBaseSimpleRewarder.LBHooksBaseSimpleRewarder__Stopped.selector);
         lbHooksExtra.setRewarderParameters(maxRewardPerSecond, startTimestamp, expectedDuration);
     }
+
+    function test_ClaimExtraRewarderEmptyMainRewarder() public {
+        MockERC20(address(rewardToken01)).mint(address(lbHooksExtra), 100e18);
+        lbHooksExtra.setDeltaBins(0, 1);
+        lbHooksExtra.setRewardPerSecond(1e18, 100);
+
+        _addLiquidity(pair01, alice, DEFAULT_ID, 1, 10e18, 10e18);
+        _addLiquidity(pair01, bob, DEFAULT_ID, 0, 30e18, 30e18);
+
+        vm.warp(block.timestamp + 1);
+
+        vm.prank(alice);
+        lbHooks.claim(alice, ids);
+
+        vm.prank(bob);
+        lbHooks.claim(bob, ids);
+
+        assertEq(moe.balanceOf(alice), 0, "test_ClaimExtraRewarderEmptyMainRewarder::1");
+        assertEq(moe.balanceOf(bob), 0, "test_ClaimExtraRewarderEmptyMainRewarder::2");
+        assertApproxEqAbs(rewardToken01.balanceOf(alice), 0.25e18, 1, "test_ClaimExtraRewarderEmptyMainRewarder::3");
+        assertApproxEqAbs(rewardToken01.balanceOf(bob), 0.75e18, 1, "test_ClaimExtraRewarderEmptyMainRewarder::4");
+    }
 }
 
 contract MockExtraHook {

@@ -391,16 +391,18 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
      * @param rewards The rewards to claim
      */
     function _claim(address user, uint256[] memory ids, uint256 rewards) internal virtual {
-        if (rewards == 0) return;
+        if (rewards == 0) {
+            _onClaim(user, ids);
+        } else {
+            _totalUnclaimedRewards -= rewards;
+            _unclaimedRewards[user] -= rewards;
 
-        _totalUnclaimedRewards -= rewards;
-        _unclaimedRewards[user] -= rewards;
+            emit Claim(user, rewards);
 
-        emit Claim(user, rewards);
+            _onClaim(user, ids);
 
-        _onClaim(user, ids);
-
-        TokenHelper.safeTransfer(_getRewardToken(), user, rewards);
+            TokenHelper.safeTransfer(_getRewardToken(), user, rewards);
+        }
     }
 
     /**
