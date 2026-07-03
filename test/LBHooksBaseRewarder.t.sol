@@ -18,14 +18,12 @@ contract LBHooksBaseRewarderTest is TestHelper {
         hooksParameters = Hooks.setHooks(hooksParameters, address(new MockLBHooksRewarder()));
 
         hooks = MockLBHooksRewarder(
-            payable(
-                _createAndSetLBHooks(
+            payable(_createAndSetLBHooks(
                     pair01,
                     hooksParameters,
                     abi.encodePacked(address(pair01), address(rewardToken01)),
                     abi.encode(address(this))
-                )
-            )
+                ))
         );
 
         vm.label(address(hooks), "hooks");
@@ -191,11 +189,9 @@ contract LBHooksBaseRewarderTest is TestHelper {
         );
 
         hooks = MockLBHooksRewarder(
-            payable(
-                _createAndSetLBHooks(
+            payable(_createAndSetLBHooks(
                     pair01, hooksParameters, abi.encodePacked(pair01, address(0)), abi.encode(address(this))
-                )
-            )
+                ))
         );
 
         (s, d) = address(hooks).call{value: 1e18}(data);
@@ -213,11 +209,9 @@ contract LBHooksBaseRewarderTest is TestHelper {
 
     function test_NativeReward() public {
         hooks = MockLBHooksRewarder(
-            payable(
-                _createAndSetLBHooks(
+            payable(_createAndSetLBHooks(
                     pair01, hooksParameters, abi.encodePacked(pair01, address(0)), abi.encode(address(this))
-                )
-            )
+                ))
         );
 
         deal(address(hooks), 1e18);

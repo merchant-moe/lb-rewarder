@@ -26,18 +26,15 @@ contract LBHooksExtraRewarderTest is TestHelper {
         );
 
         lbHooks = LBHooksMCRewarder(
-            payable(
-                address(
+            payable(address(
                     lbHooksManager.createLBHooksMCRewarder(
                         IERC20(address(token0)), IERC20(address(token1)), DEFAULT_BIN_STEP, address(this)
                     )
-                )
-            )
+                ))
         );
 
         lbHooksExtra = LBHooksExtraRewarder(
-            payable(
-                address(
+            payable(address(
                     lbHooksManager.createLBHooksExtraRewarder(
                         IERC20(address(token0)),
                         IERC20(address(token1)),
@@ -45,8 +42,7 @@ contract LBHooksExtraRewarderTest is TestHelper {
                         IERC20(address(rewardToken01)),
                         address(this)
                     )
-                )
-            )
+                ))
         );
 
         vm.label(address(lbHooks), "lbHooksRewarder");

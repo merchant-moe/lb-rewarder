@@ -19,13 +19,11 @@ contract LBHooksRewarderTest is TestHelper {
         lbHooksManager.setLBHooksParameters(ILBHooksManager.LBHooksType.MCRewarder, hooksParameters);
 
         lbHooks = LBHooksMCRewarder(
-            payable(
-                address(
+            payable(address(
                     lbHooksManager.createLBHooksMCRewarder(
                         IERC20(address(token0)), IERC20(address(token1)), DEFAULT_BIN_STEP, address(this)
                     )
-                )
-            )
+                ))
         );
 
         vm.label(address(lbHooks), "lbHooks");

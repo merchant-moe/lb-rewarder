@@ -97,13 +97,11 @@ contract LBHooksManagerTest is TestHelper {
         );
 
         LBHooksMCRewarder lbHooks = LBHooksMCRewarder(
-            payable(
-                address(
+            payable(address(
                     lbHooksManager.createLBHooksMCRewarder(
                         IERC20(address(token0)), IERC20(address(token1)), DEFAULT_BIN_STEP, address(this)
                     )
-                )
-            )
+                ))
         );
 
         assertEq(

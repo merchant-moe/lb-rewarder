@@ -152,9 +152,8 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
 
             if (accRewardsPerShareX64 > userAccRewardsPerShareX64) {
                 unchecked {
-                    pendingRewards += (accRewardsPerShareX64 - userAccRewardsPerShareX64).mulShiftRoundDown(
-                        balanceX64, OFFSET_PRECISION
-                    );
+                    pendingRewards += (accRewardsPerShareX64 - userAccRewardsPerShareX64)
+                    .mulShiftRoundDown(balanceX64, OFFSET_PRECISION);
                 }
             }
         }
@@ -372,9 +371,8 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
 
             if (accRewardsPerShareX64 > userAccRewardsPerShareX64) {
                 unchecked {
-                    pendingRewards += (accRewardsPerShareX64 - userAccRewardsPerShareX64).mulShiftRoundDown(
-                        balanceX64, OFFSET_PRECISION
-                    );
+                    pendingRewards += (accRewardsPerShareX64 - userAccRewardsPerShareX64)
+                    .mulShiftRoundDown(balanceX64, OFFSET_PRECISION);
                 }
 
                 bin.userAccRewardsPerShareX64[to] = accRewardsPerShareX64;
