@@ -26,8 +26,7 @@ contract LBHooksSimpleRewarderTest is TestHelper {
         );
 
         lbHooks = LBHooksSimpleRewarder(
-            payable(
-                address(
+            payable(address(
                     lbHooksManager.createLBHooksSimpleRewarder(
                         IERC20(address(token0)),
                         IERC20(address(token1)),
@@ -35,13 +34,11 @@ contract LBHooksSimpleRewarderTest is TestHelper {
                         IERC20(address(rewardToken01)),
                         address(this)
                     )
-                )
-            )
+                ))
         );
 
         lbHooksExtra = LBHooksExtraRewarder(
-            payable(
-                address(
+            payable(address(
                     lbHooksManager.createLBHooksExtraRewarder(
                         IERC20(address(token0)),
                         IERC20(address(token1)),
@@ -49,8 +46,7 @@ contract LBHooksSimpleRewarderTest is TestHelper {
                         IERC20(address(rewardToken02)),
                         address(this)
                     )
-                )
-            )
+                ))
         );
 
         vm.label(address(lbHooks), "lbHooksRewarder");

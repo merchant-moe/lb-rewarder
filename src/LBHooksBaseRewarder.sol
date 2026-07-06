@@ -152,9 +152,8 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
 
             if (accRewardsPerShareX64 > userAccRewardsPerShareX64) {
                 unchecked {
-                    pendingRewards += (accRewardsPerShareX64 - userAccRewardsPerShareX64).mulShiftRoundDown(
-                        balanceX64, OFFSET_PRECISION
-                    );
+                    pendingRewards += (accRewardsPerShareX64 - userAccRewardsPerShareX64)
+                    .mulShiftRoundDown(balanceX64, OFFSET_PRECISION);
                 }
             }
         }
@@ -372,9 +371,8 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
 
             if (accRewardsPerShareX64 > userAccRewardsPerShareX64) {
                 unchecked {
-                    pendingRewards += (accRewardsPerShareX64 - userAccRewardsPerShareX64).mulShiftRoundDown(
-                        balanceX64, OFFSET_PRECISION
-                    );
+                    pendingRewards += (accRewardsPerShareX64 - userAccRewardsPerShareX64)
+                    .mulShiftRoundDown(balanceX64, OFFSET_PRECISION);
                 }
 
                 bin.userAccRewardsPerShareX64[to] = accRewardsPerShareX64;
@@ -391,18 +389,16 @@ abstract contract LBHooksBaseRewarder is LBBaseHooks, Ownable2StepUpgradeable, C
      * @param rewards The rewards to claim
      */
     function _claim(address user, uint256[] memory ids, uint256 rewards) internal virtual {
-        if (rewards == 0) {
-            _onClaim(user, ids);
-        } else {
+        if (rewards > 0) {
             _totalUnclaimedRewards -= rewards;
             _unclaimedRewards[user] -= rewards;
 
             emit Claim(user, rewards);
 
-            _onClaim(user, ids);
-
             TokenHelper.safeTransfer(_getRewardToken(), user, rewards);
         }
+
+        _onClaim(user, ids);
     }
 
     /**
